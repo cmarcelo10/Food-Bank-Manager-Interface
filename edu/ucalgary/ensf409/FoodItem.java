@@ -1,4 +1,7 @@
 package edu.ucalgary.ensf409;
+import java.util.*;
+import java.sql.*;
+
 public class FoodItem {
     private final int ITEMID;
     private final String NAME;
