@@ -26,7 +26,7 @@ public class Client {
         return null;
     }
     public int getClientID(){
-        return 0;
+        return this.clientID;
     }
     public String getClientType(){
         return this.clientType;
