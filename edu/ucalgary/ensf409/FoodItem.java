@@ -41,4 +41,15 @@ public class FoodItem {
     public int getProteinContent() {
         return PROTEIN_CONTENT;
     }
+    public String getItemInfo(){
+        String info = "";
+        info += "Item name: " + getName() + "\n";
+        info += "Item ID: " + getItemID() + "\n";
+        info += "Grain Content: " + getGrainContent() + "\n";
+        info += "FruitsVeggies Content: " + getFruitsVeggiesContent() + "\n";
+        info += "Protein Content: " + getProteinContent() + "\n";
+        info += "Other Content: " + getOtherContent() + "\n";
+        info += "Calories: " + getCalories() + "\n";
+        return info;
+    }
 }

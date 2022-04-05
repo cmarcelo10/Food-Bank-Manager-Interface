@@ -12,6 +12,9 @@ public class FoodList {
     public FoodItem getFoodItem(int index){
         return this.foodList.get(index);
     }
+    public void addFoodItem(FoodItem foodItem){
+        foodList.add(foodItem);
+    }
     /**
      * 
      * @param grains is the required grain content of the client(s)
