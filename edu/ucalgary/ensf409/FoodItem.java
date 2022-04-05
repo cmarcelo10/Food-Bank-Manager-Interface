@@ -1,7 +1,4 @@
 package edu.ucalgary.ensf409;
-import java.util.*;
-import java.sql.*;
-
 public class FoodItem {
     private final int ITEMID;
     private final String NAME;
@@ -51,5 +48,41 @@ public class FoodItem {
         info += "Other Content: " + getOtherContent() + "\n";
         info += "Calories: " + getCalories() + "\n";
         return info;
+    }
+    /**
+     * A generic getter that will return a specific field value 
+     * of a {@code FoodItem} object based on the passed search key
+     * @param key is the search key:
+     * <br>{@code key = 1} returns the value of {@code getItemID()}</br> 
+     * <br>{@code key = 2} returns the value of {@code getGrainContent()}</br>
+     * <br>{@code key = 3} returns the value of {@code getFruitsVeggiesContent()}</br>
+     * <br>{@code key = 4} returns the value of {@code getProteinContent()}</br>
+     * <br>{@code key = 5} returns the value of {@code getOtherContent()}</br>
+     * <br>{@code key = 6}returns the value of {@code getCalories()}</br>
+     * @return The {@code int} value from the getter specified by the search key.
+     */
+    public int getNumericAttribute(int key){
+        int temp = 0;
+        if(key > 6 || key < 1){
+            key = key % 6;
+            if(key == 0){
+                key = 6;
+            }
+        }
+        switch(key){
+            case 1:
+                temp = this.getItemID();
+            case 2:
+                temp = this.getGrainContent();
+            case 3:
+                temp = this.getFruitsVeggiesContent();
+            case 4:
+                temp = this.getProteinContent();
+            case 5:
+                temp = this.getOtherContent();
+            case 6:
+                temp = this.getCalories();
+        }
+        return temp;
     }
 }
