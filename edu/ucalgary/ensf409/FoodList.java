@@ -3,7 +3,6 @@ import java.sql.*;
 import java.util.*;
 public class FoodList {
     private ArrayList<FoodItem> foodList;
-
     public FoodList(){
         this.foodList = new ArrayList<FoodItem>();
     }
@@ -27,7 +26,4 @@ public class FoodList {
         //Step two: compare the amount of waste of the solutions
         //Step three: choose the least wasteful of the combinations
     }
-
-
-    
 }
