@@ -12,6 +12,12 @@ public class Main{
         while(iterator.hasNext()){
             System.out.println(iterator.next().getItemInfo());
         }
+        FoodItem item = theList.get(168);
+        manager.removeFromDatabase(item, true);
+        foodList = manager.getAvailableFoodList();
+        theList = foodList.getFoodList();
+        System.out.println(theList.get(167));
+
     }
     
 }

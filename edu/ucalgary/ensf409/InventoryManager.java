@@ -46,10 +46,10 @@ public class InventoryManager{
         try{
             try{
                 dbConnect = DriverManager.getConnection(url, username, password);
-                Statement stmt = dbConnect.createStatement();
-                String query = "DELETE FROM AVAILABLE_FOOD WHERE ItemID="+foodItem.getItemID();
-                stmt.executeQuery(query);
-                dbConnect.commit();
+                String query = "DELETE FROM AVAILABLE_FOOD WHERE Name='"+foodItem.getName()+"'";
+                PreparedStatement stmt = dbConnect.prepareStatement(query);
+                System.out.println(query);
+                stmt.execute();
                 if(update == true){
                     updateStatus = updateAvailableFood();
                     int attempts = 0;
@@ -78,6 +78,7 @@ public class InventoryManager{
         return status;
     }
     public boolean updateAvailableFood() throws SQLException{
+        this.inventory = null;
         boolean status = true;
         FoodList list = new FoodList();
         try{
