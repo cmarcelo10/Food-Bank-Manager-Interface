@@ -19,7 +19,6 @@ public enum ClientTypes {
         }
     },
     CHILD_OVER_8{
-        
         public int getClientID(){
             return 3;
         }

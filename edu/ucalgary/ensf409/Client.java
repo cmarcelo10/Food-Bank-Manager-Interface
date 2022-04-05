@@ -1,7 +1,6 @@
 package edu.ucalgary.ensf409;
 import java.sql.*;
 import java.util.*;
-
 public class Client {
     private int clientID;
     private String clientType;

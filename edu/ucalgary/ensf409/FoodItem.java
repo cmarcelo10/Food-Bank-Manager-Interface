@@ -38,7 +38,7 @@ public class FoodItem {
     public int getOtherContent() {
         return OTHER_CONTENT;
     }
-    public int getProteinContent() {
+    public int getProteinContent(){
         return PROTEIN_CONTENT;
     }
     public String getItemInfo(){
