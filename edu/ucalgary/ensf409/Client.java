@@ -1,7 +1,7 @@
 package edu.ucalgary.ensf409;
 import java.sql.*;
 import java.util.*;
-public class Client {
+public class Client{    
     private int clientID;
     private String clientType;
     private int grains;
@@ -14,10 +14,10 @@ public class Client {
         this.clientID = clientID;
         this.clientType = clientType;
         this.calories = calories;
-        this.grains = grains;
-        this.protein = protein;
-        this.fruitsVeggies = fruitsVeggies;
-        this.other = other;
+        this.grains = (calories*grains)/100;
+        this.protein = (calories*protein)/100;
+        this.fruitsVeggies = (calories*fruitsVeggies)/100;
+        this.other = calories*(other/100);
     }
     public String getNeeds(){
         //Should get the client profile;

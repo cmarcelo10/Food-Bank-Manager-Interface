@@ -14,10 +14,10 @@ public class FoodItem {
     int proteinContent, int fvContent, int otherContent, int calories){
         this.ITEMID = itemid;
         this.NAME = name;
-        this.GRAIN_CONTENT = grainContent;
-        this.PROTEIN_CONTENT=proteinContent;
-        this.FV_CONTENT = fvContent;
-        this.OTHER_CONTENT = otherContent;
+        this.GRAIN_CONTENT = Math.round((float)(calories*grainContent)/100);
+        this.PROTEIN_CONTENT=Math.round((float)(calories*proteinContent)/100);
+        this.FV_CONTENT = Math.round((float)(calories*fvContent)/100);
+        this.OTHER_CONTENT = Math.round((float)(calories*otherContent)/100);
         this.CALORIES = calories;
     }
     public int getItemID() {

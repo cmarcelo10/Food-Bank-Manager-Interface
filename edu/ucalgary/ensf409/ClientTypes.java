@@ -1,8 +1,21 @@
 package edu.ucalgary.ensf409;
-
-public enum ClientTypes {
-
+public enum ClientTypes{
     ADULT_MALE{
+        private int grainNeeds;
+        private int fruitsVeggiesNeeds;
+        private int proteinNeeds;
+        private int otherNeeds;
+        private int calorieNeeds;
+        
+        public void setNeeds(int grainNeeds, int fruitsVeggiesNeeds, int proteinNeeds,
+        int otherNeeds, int calorieNeeds){
+            this.grainNeeds = grainNeeds;
+            this.calorieNeeds = calorieNeeds;
+            this.fruitsVeggiesNeeds = fruitsVeggiesNeeds;
+            this.proteinNeeds = proteinNeeds;
+            this.otherNeeds = otherNeeds;
+        }
+        
         public int getClientID(){
             return 1;
         }
@@ -27,6 +40,7 @@ public enum ClientTypes {
         }
     },
     CHILD_UNDER_8{
+
         public int getClientID(){
             return 4;
         }
@@ -34,4 +48,4 @@ public enum ClientTypes {
             return "Child under 8";
         }
     },
-}
+} 
