@@ -1,12 +1,13 @@
 package edu.ucalgary.ensf409;
 import java.sql.*;
 import java.util.*;
+
 /**
  * @version 1.5
  * @since 1.3
  * Part of the package {@code edu.ucalgary.ensf409}. Handles any connections with an SQL database.
  * Exists as an intermediate between the user and the database to maintain security
- * and integrity.
+ * and integrity. THIS SHOULD BE AN INTERFACE REALLY:
  */
 public class Database{
     private String username;
@@ -17,16 +18,39 @@ public class Database{
     private FoodList inventory;
     private int sortKey;
 
-    private AdultMale adultMale;
-    private AdultFemale adultFemale;
-    private ChildOverEight childUnderEight;
-    private ChildUnderEight childOverEight;
-
+    private final AdultMale ADULT_MALE_NEEDS;
+    private final AdultFemale ADULT_FEMALE_NEEDS;
+    private final ChildOverEight CHILD_OVER_8_NEEDS;
+    private final ChildUnderEight CHILD_UNDER_8_NEEDS;
+    
     public Database(String url, String user, String password)
     throws DatabaseException, SQLException{
         this.url = url;
         this.username = user;
         this.password = password;
+        ResultSet rs = null;
+        try{
+            try{
+                //inappropriate assignment is possible!
+                this.dbConnect = DriverManager.getConnection(url, username, password);
+                Statement statement = dbConnect.createStatement();
+                String query = "SELECT * FROM DAILY_CLIENT_NEEDS";
+                rs = statement.executeQuery(query);
+            }
+            catch(SQLException exception){
+                dbConnect.rollback();
+            }
+        }finally{
+            dbConnect.close();
+        }
+        rs.next();
+        this.ADULT_MALE_NEEDS = new AdultMale(1, rs.getString(1), rs.getInt(2),rs.getInt(3), rs.getInt(4), rs.getInt(5),rs.getInt(6));
+        rs.next();
+        this.ADULT_FEMALE_NEEDS = new AdultFemale(2, rs.getString(1), rs.getInt(2),rs.getInt(3), rs.getInt(4), rs.getInt(5),rs.getInt(6));
+        rs.next();
+        this.CHILD_OVER_8_NEEDS = new ChildOverEight(2, rs.getString(1), rs.getInt(2),rs.getInt(3), rs.getInt(4), rs.getInt(5),rs.getInt(6));
+        rs.next();
+        this.CHILD_UNDER_8_NEEDS  = new ChildUnderEight(2, rs.getString(1), rs.getInt(2),rs.getInt(3), rs.getInt(4), rs.getInt(5),rs.getInt(6));
         boolean updateStatus = updateAvailableFood();
         int attempts = 0;
         //Keep trying to connect:

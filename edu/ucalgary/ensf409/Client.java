@@ -5,17 +5,17 @@ public abstract class Client{
     protected final int grains;
     protected final int protein;
     protected final int fruitsVeggies;
-    protected final int calories;
     protected final int other;
-    public Client(int clientID, String clientType, int grains, int protein, int fruitsVeggies, 
-    int calories, int other) throws IllegalArgumentException{
+    protected final int calories;
+    public Client(int clientID, String clientType, int grains, int protein, int fruitsVeggies,
+     int other, int calories) throws IllegalArgumentException{
         this.clientID = clientID;
         this.clientType = getValidClientType(clientType);
         this.calories = calories;
-        this.grains = (calories*grains)/100;
-        this.protein = (calories*protein)/100;
-        this.fruitsVeggies = (calories*fruitsVeggies)/100;
-        this.other = (calories*other)/100;
+        this.grains = Math.round((float)((calories*grains)/100));
+        this.protein = Math.round((float)((calories*protein)/100));
+        this.fruitsVeggies = Math.round((float)((calories*fruitsVeggies)/100));
+        this.other = Math.round((float)((calories*other)/100));
     }
     private ClientTypeClasses getValidClientType(String clientType) throws IllegalArgumentException{
         clientType = clientType.trim();
