@@ -4,11 +4,11 @@ import java.util.*;
 /**
  * @version 1.5
  * @since 1.3
- * Part of the package {@code edu.ucalgary.ensf409}. Handles all connections to the SQL database.
- * Exists as an intermediate between the user and the SQL database to maintain database security
+ * Part of the package {@code edu.ucalgary.ensf409}. Handles any connections with an SQL database.
+ * Exists as an intermediate between the user and the database to maintain security
  * and integrity.
  */
-public class InventoryManager{
+public class Database{
     private String username;
     private String url;
     private String password;
@@ -16,7 +16,13 @@ public class InventoryManager{
     private ResultSet results;
     private FoodList inventory;
     private int sortKey;
-    public InventoryManager(String url, String user, String password)
+
+    private AdultMale adultMale;
+    private AdultFemale adultFemale;
+    private ChildOverEight childUnderEight;
+    private ChildUnderEight childOverEight;
+
+    public Database(String url, String user, String password)
     throws DatabaseException, SQLException{
         this.url = url;
         this.username = user;
@@ -71,7 +77,7 @@ public class InventoryManager{
             }
         }
         catch(SQLException except){
-            //Catches an SQL exception in the rollback command
+            //Catches an SQL exception in the rollback command, if it occurs
         }
         finally{
             dbConnect.commit();
@@ -143,21 +149,49 @@ public class InventoryManager{
         else{
             throw new DatabaseException(sortKey + " is not a valid option");
         }
+        this.sortKey = key;
         var foodList = this.inventory.getFoodList();
         QuickSort(foodList, 0, foodList.size()-1,key);
     }
+    /**
+     * Searches for a food item value within the database, based on the passed search key.
+     * @param searchKey is the primary key used to order the data
+     * @param searchValue is the the <b>value to search<i> for</i> </b><br></br>
+     * <br>{@code searchKey = 1} returns the value of {@code getItemID()}</br> 
+     * <br>{@code searchKey = 2} returns the value of {@code getGrainContent()}</br>
+     * <br>{@code searchKey = 3} returns the value of {@code getFruitsVeggiesContent()}</br>
+     * <br>{@code searchKey = 4} returns the value of {@code getProteinContent()}</br>
+     * <br>{@code searchKey = 5} returns the value of {@code getOtherContent()}</br>
+     * <br>{@code searchKey = 6}returns the value of {@code getCalories()}</br>
+     * @return The Food Item with the value closest to the search value.
+     */
+    public FoodItem searchByValue(String searchKey, int searchValue)throws DatabaseException{
+        searchKey = searchKey.toLowerCase().trim();
+        int key = 0;
+        if(searchKey.equals("itemid") || searchKey.equals("item id")){
+            key = 1;
+        }
+        else if(searchKey.equals("fruitsveggies content") || searchKey.equals("fruits veggies content")){
+            key = 2;
+        }else if(searchKey.equals("grain content")){
+            key = 3;
+        }else if(searchKey.equals("protein content")){
+            key = 4;
+        }else if(searchKey.equals("other content")){
+            key = 5;
+        }else if(searchKey.equals("calories")){
+            key = 6;
+        }
+        else{
+            throw new DatabaseException(searchKey + " is not a valid option");
+        }
+        return binarySearch(key, searchValue);
+    }
     private void QuickSort(ArrayList<FoodItem> arr, int left, int right, int key){
-        while(left < right){
-            int partIndex = partition(arr, left, right, key);// partIndex is partitioning index,
-            //If the left partition is smaller, handle it recursively
-            if(partIndex - left < right - partIndex){
-                QuickSort(arr, left, partIndex,key);
-                left = partIndex+1;
-            }
-            else{
-                QuickSort(arr, partIndex + 1, right,key);
-                right = partIndex - 1;
-            }
+        if(left < right){
+            int partIndex = partition(arr, left, right, key);
+            QuickSort(arr, left, partIndex,key);
+            QuickSort(arr, partIndex + 1, right,key);
         }
     }
         /**
@@ -171,15 +205,17 @@ public class InventoryManager{
         */
     private int partition(ArrayList<FoodItem> arrayList, int left, int right, int key){ // geeksforgeeks
         int pivot = medianOfThree(arrayList, left, right,key).getNumericAttribute(key); //find the array pivot
-        int i = left;
-        int j = right;
+        int i = left-1;
+        int j = right+1;
         while (true){
-            while(arrayList.get(i).getNumericAttribute(key) < pivot){
-                i=i+1;
+            do{
+                i++;
             }
-            while(arrayList.get(j).getNumericAttribute(key) > pivot){
-                j=j-1;
+            while(arrayList.get(i).getNumericAttribute(key) < pivot);
+            do{
+                j--;
             }
+            while(arrayList.get(j).getNumericAttribute(key) > pivot);
             if(i>=j){
                     return j;
             }
@@ -224,7 +260,7 @@ public class InventoryManager{
     }
     public FoodItem binarySearch(int sortKey, int searchKey) throws DatabaseException{
         if(this.sortKey != sortKey){
-            QuickSort(inventory.getFoodList(), 0, inventory.getFoodList().size(), sortKey);
+            QuickSort(inventory.getFoodList(), 0, inventory.getFoodList().size()-1, sortKey);
             this.sortKey = sortKey;
         }
         ArrayList<FoodItem> foodItems = inventory.getFoodList();
@@ -251,7 +287,7 @@ public class InventoryManager{
         int leftAttribute = foodItems.get(leftBound-1).getNumericAttribute(sortKey);
         int rightAttribute = foodItems.get(rightBound).getNumericAttribute(sortKey);
         if((leftAttribute - searchKey) < (searchKey - rightAttribute)){
-            return foodItems.get(leftBound+1);
+            return foodItems.get(leftBound);
         }
         else{
             return foodItems.get(rightBound);
