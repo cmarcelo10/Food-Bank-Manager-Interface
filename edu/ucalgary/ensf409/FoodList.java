@@ -24,17 +24,27 @@ public class FoodList{
         updateAllFields();
     }
     private void updateAllFields(){
+        //Multithreadable task
         Iterator<FoodItem> iterator = this.foodItems.iterator();
+        this.calorieContent = 0;
+        this.fruitVeggieContent = 0;
+        this.otherContent = 0;
+        this.proteinContent = 0;
+        this.wholeGrainsContent = 0;
         while(iterator.hasNext()){
             FoodItem temp = iterator.next();
             this.calorieContent += temp.getCalories();
             this.fruitVeggieContent +=temp.getFruitVeggiesContent();
             this.proteinContent += temp.getProteinContent();
             this.wholeGrainsContent +=temp.getGrainContent();
+            this.otherContent +=temp.getOtherContent();
         }
     }
     public ArrayList<FoodItem> getFoodList(){
         return this.foodItems;
+    }
+    public void setFoodList(ArrayList<FoodItem> foodList){
+        this.foodItems = foodList;
     }
     public FoodItem getFoodItem(int index){
         return this.foodItems.get(index);

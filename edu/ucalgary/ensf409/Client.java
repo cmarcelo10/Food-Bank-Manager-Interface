@@ -24,9 +24,10 @@ public class Client{
         this.clientID = clientID;
         this.clientType = getValidClientType(clientType);
         this.calories = calories;
-        this.grains = Math.round((float)((calories*grains)/100));
-        this.protein = Math.round((float)((calories*protein)/100));
-        this.fruitVeggies = Math.round((float)((calories*fruitVeggies)/100));this.other = Math.round((float)((calories*other)/100));
+        this.grains = Math.round((float)((float)(calories*grains)/100));
+        this.protein = Math.round((float)((float)(calories*protein)/100));
+        this.fruitVeggies = Math.round((float)((float)(calories*fruitVeggies)/100));
+        this.other = Math.round((float)((float)(calories*other)/100));
 
     }
     public static ClientTypeClasses getValidClientType(String clientType) throws IllegalArgumentException{

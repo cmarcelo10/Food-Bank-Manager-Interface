@@ -8,7 +8,7 @@ import java.util.*;
  * Exists as an intermediate between the user and the database to maintain security
  * and integrity.
  */
-public class Database{
+public class Database extends Thread{
     private String username;
     private String url;
     private String password;
@@ -63,21 +63,21 @@ public class Database{
     /**
      * 
      * @param foodItem is the {@code FoodItem} object to remove from the database and inventory
-     * @param update whether or not to update the food inventory. If performing a large
+     * @param update whether or not to update the SQL food inventory. If performing a large
      * number of updates, this should be false;
-     * @return true if the update was successful; false otherwise
+     * @return the updated inventory as an ArrayList
      * @throws SQLException
      * @throws DatabaseException
      */
-    public boolean removeFromInventory(FoodItem foodItem, boolean update) throws SQLException, DatabaseException{
+    public ArrayList<FoodItem> removeFromInventory(FoodItem foodItem, boolean update) throws SQLException, DatabaseException{
         boolean status = true;
         boolean updateStatus = true;
+        ArrayList<FoodItem> pointer = inventory.getFoodList();
         try{
             try{
                 dbConnect = DriverManager.getConnection(url, username, password);
                 String query = "DELETE FROM AVAILABLE_FOOD WHERE Name='"+foodItem.getName()+"'";
                 PreparedStatement stmt = dbConnect.prepareStatement(query);
-                System.out.println(query);
                 stmt.execute();
                 if(update == true){
                     updateStatus = updateAvailableFood();
@@ -88,6 +88,8 @@ public class Database{
                         updateStatus = updateAvailableFood();
                         attempts++;
                     }
+                }else{
+                    pointer.remove(foodItem);
                 }
             }
             catch(SQLException exception){
@@ -105,7 +107,13 @@ public class Database{
         if(updateStatus == false){
             throw new DatabaseException();
         }
-        return status;
+        if(update == true){
+            return this.inventory.getFoodList();
+        }
+        else{return pointer;}
+    }
+    private ArrayList<FoodItem> resolveConflicts(ArrayList<ArrayList<FoodItem>> listOfLists){
+        return null;
     }
     /**
      * Updates the FoodList contained by the inventory to reflect 
@@ -120,7 +128,6 @@ public class Database{
         try{
             try{
                 dbConnect = DriverManager.getConnection(url, username, password);
-                System.out.println("foo");
                 Statement stmt = dbConnect.createStatement();
                 String query = "SELECT * FROM AVAILABLE_FOOD";
                 results = stmt.executeQuery(query);
@@ -316,7 +323,6 @@ public class Database{
             return foodItems.get(rightBound);
         }
     }
-
     public FoodList getLeastWasteful(ArrayList<Client> clients) throws DatabaseException, SQLException{
         Iterator<Client> iterator = clients.iterator();
         int totalGrainNeeds = 0;
@@ -333,47 +339,78 @@ public class Database{
             totalCalories+=client.getCalories();
         }
         FoodList foodList = new FoodList();
-        int grains=totalGrainNeeds;
-        int fruitVeggies=totalFVNeeds;
-        int protein=totalProteinNeeds;
-        int other=totalOtherNeeds;
-        boolean grainsMet = false;
-        boolean fvMet = false;
-        boolean proteinMet = false;
-        boolean otherMet = false;
-        FoodItem temp = null;
-        while(grains > 0|| fruitVeggies >0 || protein >0 ||other >0){
-            if(grainsMet == false){
-                temp = searchByValue("grain content", grains);
-                //WHY DOES THIS BREAK WITH BEETS?!
-            }else if(fvMet == false){
-                temp = searchByValue("fruit veggies content", fruitVeggies);
-            }else if(proteinMet == false){
-                temp = searchByValue("protein content", protein);
-            }else if(otherMet == false){
-                temp = searchByValue("other content", other);
+        int grains=totalGrainNeeds*7;
+        int fruitVeggies=totalFVNeeds*7;
+        int protein=totalProteinNeeds*7;
+        int other=totalOtherNeeds*7;
+        int calories=totalCalories*7;
+        FoodItem itemA = null;
+        FoodItem itemB = null;
+        FoodItem itemC = null;
+        FoodItem itemD = null;
+        //Multithreading:
+        //May not be possible because of the sorting of the array.
+        /*
+        while(calories>0){
+            FoodItem foodItem = searchByValue("Calories", calories);
+            foodList.addFoodItem(foodItem);
+            calories -= foodItem.getCalories();
+            grains -=foodItem.getGrainContent();
+            fruitVeggies -=foodItem.getFruitVeggiesContent();
+            protein -= foodItem.getProteinContent();
+            other -= foodItem.getOtherContent();
+            removeFromInventory(foodItem,true);
+        }
+        */
+        //double searchFactor = 1.00-(float)(1.5000/(float)(clients.size()));
+        
+        //Search for four food items, and add only then 
+        int ticker = 1;
+        while(grains > 50 || protein> 50 || other > 50 || fruitVeggies > 50){
+            double searchFactor = 1.10 - Math.random();
+            System.out.println("Current search factor: " + searchFactor);
+            if(grains > 50){
+                itemA = searchByValue("grain content", (int)Math.round((float)grains*searchFactor*searchFactor));
+                foodList.addFoodItem(itemA);
+                this.inventory.setFoodList(removeFromInventory(itemA,true)); //!!
+                grains -=itemA.getGrainContent();
+                fruitVeggies -=itemA.getFruitVeggiesContent();
+                protein -=itemA.getProteinContent();
+                other -=itemA.getOtherContent();
             }
-            grains -= temp.getGrainContent();
-            fruitVeggies -= temp.getFruitVeggiesContent();
-            protein -=temp.getProteinContent();
-            other -=temp.getOtherContent();
-            foodList.addFoodItem(temp);
-            removeFromInventory(temp, true);
-            if(grains <= 0){
-                grainsMet = true;
+           else if(protein > 50){
+                itemB = searchByValue("protein content", (int)Math.round((float)protein*searchFactor*searchFactor));
+                foodList.addFoodItem(itemB);
+                this.inventory.setFoodList(removeFromInventory(itemB, false)); //!
+                grains -=itemB.getGrainContent();
+                fruitVeggies -=itemB.getFruitVeggiesContent();
+                protein -=itemB.getProteinContent();
+                other -=itemB.getOtherContent();
             }
-            if(fruitVeggies <=0){
-                fvMet = true;
-            }
-            if(protein <= 0){
-                proteinMet = true;
-            }
-            if(other <= 0){
-                otherMet = true;
+            else if(fruitVeggies > 50){
+                itemC = searchByValue("fruit veggies content",(int)Math.round((float)(fruitVeggies)*searchFactor*searchFactor));
+                foodList.addFoodItem(itemC);
+                this.inventory.setFoodList(removeFromInventory(itemC,true)); //!!
+                grains -=itemC.getGrainContent();
+                fruitVeggies -=itemC.getFruitVeggiesContent();
+                protein -=itemC.getProteinContent();
+                other -=itemC.getOtherContent();
+
+            }else{
+                itemD = searchByValue("other content",(int)Math.round((float)other*searchFactor*searchFactor));
+                foodList.addFoodItem(itemD);
+                this.inventory.setFoodList(removeFromInventory(itemD,true)); //!!
+                grains -=itemD.getGrainContent();
+                fruitVeggies -=itemD.getFruitVeggiesContent();
+                protein -=itemD.getProteinContent();
+                other -=itemD.getOtherContent();
             }
         }
         return foodList;
     }
+
+    //private FoodItem decisionAlgorithm(FoodItem itemA, FoodItem itemB, FoodItem itemC, FoodItem itemD){
+
     public Hamper createHamper(ArrayList<Client> clients)throws SQLException, DatabaseException{
         FoodList foodList = getLeastWasteful(clients);
         Hamper hamper = new Hamper(clients,foodList);

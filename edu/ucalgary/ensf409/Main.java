@@ -15,16 +15,27 @@ public class Main{
         Client clientB = database.createClient("Adult Female");
         Client clientC = database.createClient("Child under 8");
         Client clientD = database.createClient("Child over 8");
+        Client clientE = database.createClient("Child over 8");
+
         ArrayList<Client> clients = new ArrayList<Client>();
+        int calTotal = 0;
         clients.add(clientA);
         clients.add(clientB);
         clients.add(clientC);
         clients.add(clientD);
+        clients.add(clientE);
+        Iterator<Client> iter = clients.iterator();
+        while(iter.hasNext()){
+           var temp = iter.next();
+           calTotal+=temp.getCalories();
+        }
         FoodList list = database.getLeastWasteful(clients);
         ArrayList<FoodItem> list2 = list.getFoodList();
         Iterator<FoodItem> iterator = list2.iterator();
         while(iterator.hasNext()){
             System.out.println(iterator.next().getItemInfo());
         }
+        System.out.println(calTotal*7);
+        System.out.println(list.getTotalCalories());
     }
 }
