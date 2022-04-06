@@ -306,10 +306,14 @@ public class Database{
         }
         int leftAttribute = foodItems.get(leftBound-1).getNumericAttribute(sortKey);
         int rightAttribute = foodItems.get(rightBound).getNumericAttribute(sortKey);
-        if((leftAttribute - searchKey) < (searchKey - rightAttribute)){
+        if((leftAttribute - searchKey) < (searchKey - rightAttribute) && leftAttribute != 0){
             return foodItems.get(leftBound);
         }
         else{
+            while(foodItems.get(rightBound).getNumericAttribute(sortKey) == 0 
+            && rightBound < foodItems.size()){
+                rightBound ++;
+            }
             return foodItems.get(rightBound);
         }
     }
@@ -354,6 +358,7 @@ public class Database{
             }
             if(grainsMet == false){
                 temp = searchByValue("grain content", grains);
+                //WHY DOES THIS BREAK WITH BEETS?!
             }else if(fvMet == false){
                 temp = searchByValue("fruit veggies content", fruitVeggies);
             }else if(proteinMet == false){
