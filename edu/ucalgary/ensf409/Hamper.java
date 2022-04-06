@@ -5,27 +5,26 @@ import java.util.*;
  * @since 1.0
  * @author Carter Marcelo <ahref>mailto:carter.marcelo@ucalgary.ca</a>
  */
-public class Hamper {
+public class Hamper{
     private ArrayList<Client> clients;
-    private ArrayList<FoodItem> foodItems;
+    private FoodList foodList;
     private int totalCalories;
     private int totalFruitVeggies;
     private int totalGrains;
     private int totalProtein;
     private int totalOther;
-
     public Hamper(){
         this.clients = null;
-        this.foodItems = null;
+        this.foodList = null;
         this.totalCalories = 0;
         this.totalFruitVeggies = 0;
         this.totalGrains = 0;
         this.totalOther = 0;
         this.totalProtein = 0;
     }
-    public Hamper(ArrayList<Client> clients, ArrayList<FoodItem>foodItems){
+    public Hamper(ArrayList<Client> clients,FoodList foodList){
         this.clients = clients;
-        this.foodItems = foodItems;
+        this.foodList = foodList;
         this.totalCalories = 0;
         this.totalFruitVeggies = 0;
         this.totalGrains = 0;
@@ -38,11 +37,11 @@ public class Hamper {
     public void setClients(ArrayList<Client> clients){
         this.clients = clients;
     }
-    public ArrayList<FoodItem>getFoodItems(){
-        return this.foodItems;
+    public FoodList getFoodList(){
+        return this.foodList;
     }
-    public void setFoodItems(ArrayList<FoodItem> foodItems){
-        this.foodItems = foodItems;
+    public void setFoodList (FoodList foodList){
+        this.foodList = foodList;
     }
     public int getTotalCalories(){
         return this.totalCalories;

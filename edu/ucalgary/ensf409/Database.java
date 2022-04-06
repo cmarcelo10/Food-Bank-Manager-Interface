@@ -1,7 +1,6 @@
 package edu.ucalgary.ensf409;
 import java.sql.*;
 import java.util.*;
-
 /**
  * @version 1.5
  * @since 1.3
@@ -344,6 +343,22 @@ public class Database{
         boolean otherMet = false;
         FoodItem temp = null;
         while(grains > 0|| fruitVeggies >0 || protein >0 ||other >0){
+            if(grainsMet == false){
+                temp = searchByValue("grain content", grains);
+                //WHY DOES THIS BREAK WITH BEETS?!
+            }else if(fvMet == false){
+                temp = searchByValue("fruit veggies content", fruitVeggies);
+            }else if(proteinMet == false){
+                temp = searchByValue("protein content", protein);
+            }else if(otherMet == false){
+                temp = searchByValue("other content", other);
+            }
+            grains -= temp.getGrainContent();
+            fruitVeggies -= temp.getFruitVeggiesContent();
+            protein -=temp.getProteinContent();
+            other -=temp.getOtherContent();
+            foodList.addFoodItem(temp);
+            removeFromInventory(temp, true);
             if(grains <= 0){
                 grainsMet = true;
             }
@@ -356,24 +371,13 @@ public class Database{
             if(other <= 0){
                 otherMet = true;
             }
-            if(grainsMet == false){
-                temp = searchByValue("grain content", grains);
-                //WHY DOES THIS BREAK WITH BEETS?!
-            }else if(fvMet == false){
-                temp = searchByValue("fruit veggies content", fruitVeggies);
-            }else if(proteinMet == false){
-                temp = searchByValue("protein content", protein);
-            }else{
-                temp = searchByValue("other content", other);
-            }
-            grains -= temp.getGrainContent();
-            fruitVeggies -= temp.getFruitVeggiesContent();
-            protein -=temp.getProteinContent();
-            other -=temp.getOtherContent();
-            foodList.addFoodItem(temp);
-            removeFromInventory(temp, true);
         }
         return foodList;
     }
-}
+    public Hamper createHamper(ArrayList<Client> clients)throws SQLException, DatabaseException{
+        FoodList foodList = getLeastWasteful(clients);
+        Hamper hamper = new Hamper(clients,foodList);
+        return hamper;
+    }
+} 
 
