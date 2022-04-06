@@ -9,7 +9,7 @@ public class Hamper {
     private ArrayList<Client> clients;
     private ArrayList<FoodItem> foodItems;
     private int totalCalories;
-    private int totalFruitsVeggies;
+    private int totalFruitVeggies;
     private int totalGrains;
     private int totalProtein;
     private int totalOther;
@@ -18,7 +18,7 @@ public class Hamper {
         this.clients = null;
         this.foodItems = null;
         this.totalCalories = 0;
-        this.totalFruitsVeggies = 0;
+        this.totalFruitVeggies = 0;
         this.totalGrains = 0;
         this.totalOther = 0;
         this.totalProtein = 0;
@@ -27,7 +27,7 @@ public class Hamper {
         this.clients = clients;
         this.foodItems = foodItems;
         this.totalCalories = 0;
-        this.totalFruitsVeggies = 0;
+        this.totalFruitVeggies = 0;
         this.totalGrains = 0;
         this.totalOther = 0;
         this.totalProtein = 0;
@@ -47,8 +47,8 @@ public class Hamper {
     public int getTotalCalories(){
         return this.totalCalories;
     }
-    public int getTotalFruitsVeggies(){
-        return this.totalFruitsVeggies;
+    public int getTotalFruitVeggies(){
+        return this.totalFruitVeggies;
     }
     public int getTotalProtein(){
         return this.totalProtein;

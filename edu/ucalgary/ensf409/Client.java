@@ -1,23 +1,35 @@
 package edu.ucalgary.ensf409;
-public abstract class Client{    
-    protected final int clientID;
-    protected final ClientTypeClasses clientType;
-    protected final int grains;
-    protected final int protein;
-    protected final int fruitsVeggies;
-    protected final int other;
-    protected final int calories;
-    public Client(int clientID, String clientType, int grains, int protein, int fruitsVeggies,
-     int other, int calories) throws IllegalArgumentException{
+import java.util.*;
+public class Client{    
+    private final int clientID;
+    private final ClientTypeClasses clientType;
+    private final int grains;
+    private final int protein;
+    private final int fruitVeggies;
+    private final int other;
+    private final int calories;
+    /**
+     * 
+     * @param clientID the clientID number
+     * @param clientType the type of client
+     * @param grains is the raw percentage of calories comprised of grains
+     * @param protein is the raw percentage of calories comprised of protein
+     * @param fruitVeggies
+     * @param other
+     * @param calories
+     * @throws IllegalArgumentException
+     */
+    public Client(int clientID, String clientType, int grains, int fruitVeggies, int protein,
+    int other, int calories) throws IllegalArgumentException{
         this.clientID = clientID;
         this.clientType = getValidClientType(clientType);
         this.calories = calories;
         this.grains = Math.round((float)((calories*grains)/100));
         this.protein = Math.round((float)((calories*protein)/100));
-        this.fruitsVeggies = Math.round((float)((calories*fruitsVeggies)/100));
-        this.other = Math.round((float)((calories*other)/100));
+        this.fruitVeggies = Math.round((float)((calories*fruitVeggies)/100));this.other = Math.round((float)((calories*other)/100));
+
     }
-    private ClientTypeClasses getValidClientType(String clientType) throws IllegalArgumentException{
+    public static ClientTypeClasses getValidClientType(String clientType) throws IllegalArgumentException{
         clientType = clientType.trim();
         clientType = clientType.replaceAll("( )","_");
         clientType = clientType.toUpperCase();
@@ -37,7 +49,7 @@ public abstract class Client{
             throw new IllegalArgumentException("Failed to initialize client: invalid client type \"" + clientType + "\"");
         }
     }
-    public String getNeeds(){
+    public ArrayList<Integer> getNeeds(){
         //Should get the client profile;
         return null;
     }
@@ -56,8 +68,8 @@ public abstract class Client{
     public int getProtein(){
         return this.protein;
     }
-    public int getFruitsVeggies(){
-        return this.fruitsVeggies;
+    public int getFruitVeggies(){
+        return this.fruitVeggies;
     }
     public int getOther(){
         return this.other;

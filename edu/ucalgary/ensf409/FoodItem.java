@@ -23,7 +23,7 @@ public class FoodItem {
     public int getCalories() {
         return CALORIES;
     }
-    public int getFruitsVeggiesContent() {
+    public int getFruitVeggiesContent() {
         return FV_CONTENT;
     }
     public int getGrainContent() {
@@ -43,7 +43,7 @@ public class FoodItem {
         info += "Item name: " + getName() + "\n";
         info += "Item ID: " + getItemID() + "\n";
         info += "Grain Content: " + getGrainContent() + "\n";
-        info += "FruitsVeggies Content: " + getFruitsVeggiesContent() + "\n";
+        info += "FruitVeggies Content: " + getFruitVeggiesContent() + "\n";
         info += "Protein Content: " + getProteinContent() + "\n";
         info += "Other Content: " + getOtherContent() + "\n";
         info += "Calories: " + getCalories() + "\n";
@@ -55,7 +55,7 @@ public class FoodItem {
      * @param key is the search key:
      * <br>{@code key = 1} returns the value of {@code getItemID()}</br> 
      * <br>{@code key = 2} returns the value of {@code getGrainContent()}</br>
-     * <br>{@code key = 3} returns the value of {@code getFruitsVeggiesContent()}</br>
+     * <br>{@code key = 3} returns the value of {@code getFruitVeggiesContent()}</br>
      * <br>{@code key = 4} returns the value of {@code getProteinContent()}</br>
      * <br>{@code key = 5} returns the value of {@code getOtherContent()}</br>
      * <br>{@code key = 6}returns the value of {@code getCalories()}</br>
@@ -75,7 +75,7 @@ public class FoodItem {
             case 2:
                 temp = this.getGrainContent();
             case 3:
-                temp = this.getFruitsVeggiesContent();
+                temp = this.getFruitVeggiesContent();
             case 4:
                 temp = this.getProteinContent();
             case 5:

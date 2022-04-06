@@ -7,7 +7,7 @@ import java.util.*;
  * @since 1.3
  * Part of the package {@code edu.ucalgary.ensf409}. Handles any connections with an SQL database.
  * Exists as an intermediate between the user and the database to maintain security
- * and integrity. THIS SHOULD BE AN INTERFACE REALLY:
+ * and integrity.
  */
 public class Database{
     private String username;
@@ -17,40 +17,11 @@ public class Database{
     private ResultSet results;
     private FoodList inventory;
     private int sortKey;
-
-    private final AdultMale ADULT_MALE_NEEDS;
-    private final AdultFemale ADULT_FEMALE_NEEDS;
-    private final ChildOverEight CHILD_OVER_8_NEEDS;
-    private final ChildUnderEight CHILD_UNDER_8_NEEDS;
-    
     public Database(String url, String user, String password)
     throws DatabaseException, SQLException{
         this.url = url;
         this.username = user;
         this.password = password;
-        ResultSet rs = null;
-        try{
-            try{
-                //inappropriate assignment is possible!
-                this.dbConnect = DriverManager.getConnection(url, username, password);
-                Statement statement = dbConnect.createStatement();
-                String query = "SELECT * FROM DAILY_CLIENT_NEEDS";
-                rs = statement.executeQuery(query);
-            }
-            catch(SQLException exception){
-                dbConnect.rollback();
-            }
-        }finally{
-            dbConnect.close();
-        }
-        rs.next();
-        this.ADULT_MALE_NEEDS = new AdultMale(1, rs.getString(1), rs.getInt(2),rs.getInt(3), rs.getInt(4), rs.getInt(5),rs.getInt(6));
-        rs.next();
-        this.ADULT_FEMALE_NEEDS = new AdultFemale(2, rs.getString(1), rs.getInt(2),rs.getInt(3), rs.getInt(4), rs.getInt(5),rs.getInt(6));
-        rs.next();
-        this.CHILD_OVER_8_NEEDS = new ChildOverEight(2, rs.getString(1), rs.getInt(2),rs.getInt(3), rs.getInt(4), rs.getInt(5),rs.getInt(6));
-        rs.next();
-        this.CHILD_UNDER_8_NEEDS  = new ChildUnderEight(2, rs.getString(1), rs.getInt(2),rs.getInt(3), rs.getInt(4), rs.getInt(5),rs.getInt(6));
         boolean updateStatus = updateAvailableFood();
         int attempts = 0;
         //Keep trying to connect:
@@ -62,6 +33,30 @@ public class Database{
         if(updateStatus == false){
             throw new DatabaseException();
         }
+    }
+    public Client createClient(String clientType)throws SQLException{
+        dbConnect = DriverManager.getConnection(url,username,password);
+        clientType = Client.getValidClientType(clientType).toString(); 
+        //Standardizes input and prevents SQL injection. 
+        String sql = "SELECT * FROM DAILY_CLIENT_NEEDS";
+        Statement statement = dbConnect.createStatement();
+        ResultSet resultSet = statement.executeQuery(sql);
+        while(resultSet.next()){
+            if(resultSet.getString("Client").equals(clientType)){
+                break;
+            }
+            else{
+                continue;
+            }
+        }
+        int clientID = resultSet.getInt("ClientID");
+        int grains = resultSet.getInt("WholeGrains");
+        int protein = resultSet.getInt("Protein");
+        int fruitVeggies = resultSet.getInt("FruitVeggies");
+        int other = resultSet.getInt("Other");
+        int calories = resultSet.getInt("Calories");
+        Client client = new Client(clientID, clientType, grains, protein, fruitVeggies, other, calories);
+        return client;
     }
     public FoodList getAvailableFoodList(){
         return this.inventory;
@@ -87,6 +82,7 @@ public class Database{
                 stmt.execute();
                 if(update == true){
                     updateStatus = updateAvailableFood();
+                    dbConnect.commit();
                     int attempts = 0;
                     while(!(updateStatus) && attempts < 10){
                         System.out.println("Failed to connect... retrying ("+ attempts+1+"/10)");
@@ -104,7 +100,6 @@ public class Database{
             //Catches an SQL exception in the rollback command, if it occurs
         }
         finally{
-            dbConnect.commit();
             dbConnect.close();
             //throws an SQLException if something goes awry while closing the database;
         }
@@ -126,6 +121,7 @@ public class Database{
         try{
             try{
                 dbConnect = DriverManager.getConnection(url, username, password);
+                System.out.println("foo");
                 Statement stmt = dbConnect.createStatement();
                 String query = "SELECT * FROM AVAILABLE_FOOD";
                 results = stmt.executeQuery(query);
@@ -183,7 +179,7 @@ public class Database{
      * @param searchValue is the the <b>value to search<i> for</i> </b><br></br>
      * <br>{@code searchKey = 1} returns the value of {@code getItemID()}</br> 
      * <br>{@code searchKey = 2} returns the value of {@code getGrainContent()}</br>
-     * <br>{@code searchKey = 3} returns the value of {@code getFruitsVeggiesContent()}</br>
+     * <br>{@code searchKey = 3} returns the value of {@code getFruitVeggiesContent()}</br>
      * <br>{@code searchKey = 4} returns the value of {@code getProteinContent()}</br>
      * <br>{@code searchKey = 5} returns the value of {@code getOtherContent()}</br>
      * <br>{@code searchKey = 6}returns the value of {@code getCalories()}</br>
@@ -195,10 +191,10 @@ public class Database{
         if(searchKey.equals("itemid") || searchKey.equals("item id")){
             key = 1;
         }
-        else if(searchKey.equals("fruitsveggies content") || searchKey.equals("fruits veggies content")){
-            key = 2;
-        }else if(searchKey.equals("grain content")){
+        else if(searchKey.equals("fruitveggies content") || searchKey.equals("fruit veggies content")){
             key = 3;
+        }else if(searchKey.equals("grain content")){
+            key = 2;
         }else if(searchKey.equals("protein content")){
             key = 4;
         }else if(searchKey.equals("other content")){
@@ -283,7 +279,7 @@ public class Database{
         return pivot;
     }
     public FoodItem binarySearch(int sortKey, int searchKey) throws DatabaseException{
-        if(this.sortKey != sortKey){
+        if(this.sortKey != sortKey || sortKey == 0){
             QuickSort(inventory.getFoodList(), 0, inventory.getFoodList().size()-1, sortKey);
             this.sortKey = sortKey;
         }
@@ -294,7 +290,7 @@ public class Database{
             return foodItems.get(0);
         }
         if(searchKey > foodItems.get(rightBound).getNumericAttribute(sortKey)){
-            return foodItems.get(0);
+            return foodItems.get(rightBound);
         }
         while(leftBound <= rightBound){
             int middle = (leftBound + rightBound)/2;
@@ -316,6 +312,63 @@ public class Database{
         else{
             return foodItems.get(rightBound);
         }
+    }
+
+    public FoodList getLeastWasteful(ArrayList<Client> clients) throws DatabaseException, SQLException{
+        Iterator<Client> iterator = clients.iterator();
+        int totalGrainNeeds = 0;
+        int totalFVNeeds = 0;
+        int totalProteinNeeds = 0;
+        int totalOtherNeeds = 0;
+        int totalCalories = 0;
+        while(iterator.hasNext()){
+            Client client = iterator.next();
+            totalGrainNeeds+=client.getGrains();
+            totalFVNeeds+=client.getFruitVeggies();
+            totalProteinNeeds+=client.getProtein();
+            totalOtherNeeds+=client.getOther();
+            totalCalories+=client.getCalories();
+        }
+        FoodList foodList = new FoodList();
+        int grains=totalGrainNeeds;
+        int fruitVeggies=totalFVNeeds;
+        int protein=totalProteinNeeds;
+        int other=totalOtherNeeds;
+        boolean grainsMet = false;
+        boolean fvMet = false;
+        boolean proteinMet = false;
+        boolean otherMet = false;
+        FoodItem temp = null;
+        while(grains > 0|| fruitVeggies >0 || protein >0 ||other >0){
+            if(grains <= 0){
+                grainsMet = true;
+            }
+            if(fruitVeggies <=0){
+                fvMet = true;
+            }
+            if(protein <= 0){
+                proteinMet = true;
+            }
+            if(other <= 0){
+                otherMet = true;
+            }
+            if(grainsMet == false){
+                temp = searchByValue("grain content", grains);
+            }else if(fvMet == false){
+                temp = searchByValue("fruit veggies content", fruitVeggies);
+            }else if(proteinMet == false){
+                temp = searchByValue("protein content", protein);
+            }else{
+                temp = searchByValue("other content", other);
+            }
+            grains -= temp.getGrainContent();
+            fruitVeggies -= temp.getFruitVeggiesContent();
+            protein -=temp.getProteinContent();
+            other -=temp.getOtherContent();
+            foodList.addFoodItem(temp);
+            removeFromInventory(temp, true);
+        }
+        return foodList;
     }
 }
 

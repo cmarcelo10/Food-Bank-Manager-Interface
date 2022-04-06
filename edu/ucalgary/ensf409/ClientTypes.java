@@ -2,16 +2,16 @@ package edu.ucalgary.ensf409;
 public enum ClientTypes{
     ADULT_MALE{
         private int grainNeeds;
-        private int fruitsVeggiesNeeds;
+        private int fruitVeggiesNeeds;
         private int proteinNeeds;
         private int otherNeeds;
         private int calorieNeeds;
         
-        public void setNeeds(int grainNeeds, int fruitsVeggiesNeeds, int proteinNeeds,
+        public void setNeeds(int grainNeeds, int fruitVeggiesNeeds, int proteinNeeds,
         int otherNeeds, int calorieNeeds){
             this.grainNeeds = grainNeeds;
             this.calorieNeeds = calorieNeeds;
-            this.fruitsVeggiesNeeds = fruitsVeggiesNeeds;
+            this.fruitVeggiesNeeds = fruitVeggiesNeeds;
             this.proteinNeeds = proteinNeeds;
             this.otherNeeds = otherNeeds;
         }
