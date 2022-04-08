@@ -281,11 +281,7 @@ public class Database extends Thread{
         FoodItem pivot = arrayList.get(right);
         return pivot;
     }
-    public FoodItem binarySearch(int sortKey, int searchKey) throws DatabaseException{
-        if(this.sortKey != sortKey || sortKey == 0){
-            QuickSort(inventory.getFoodList(), 0, inventory.getFoodList().size()-1, sortKey);
-            this.sortKey = sortKey;
-        }
+    private FoodItem binarySearch(int sortKey, int searchKey) throws DatabaseException{
         ArrayList<FoodItem> foodItems = inventory.getFoodList();
         int leftBound = 0;
         int rightBound = foodItems.size() - 1;
@@ -320,12 +316,7 @@ public class Database extends Thread{
             return foodItems.get(rightBound);
         }
     }
-    public FoodItem binarySearch(int sortKey, int searchKey, FoodList inventory) throws DatabaseException{
-        if(this.sortKey != sortKey || sortKey == 0){
-            QuickSort(inventory.getFoodList(), 0, inventory.getFoodList().size()-1, sortKey);
-            this.sortKey = sortKey;
-        }
-        ArrayList<FoodItem> foodItems = inventory.getFoodList();
+    public FoodItem binarySearch(int sortKey, int searchKey, ArrayList<FoodItem>foodItems) throws DatabaseException{
         int leftBound = 0;
         int rightBound = foodItems.size() - 1;
         if(searchKey < foodItems.get(leftBound).getNumericAttribute(sortKey)){
@@ -359,7 +350,7 @@ public class Database extends Thread{
             return foodItems.get(rightBound);
         }
     }
-    public FoodList getLeastWasteful(ArrayList<Client> clients) throws DatabaseException, SQLException{
+    public FoodList getLeastWasteful(ArrayList<Client> clients) throws DatabaseException, SQLException, InterruptedException{
         Iterator<Client> iterator = clients.iterator();
         int totalGrainNeeds = 0;
         int totalFVNeeds = 0;
@@ -391,7 +382,7 @@ public class Database extends Thread{
         ArrayList<FoodItem> proteinList = new ArrayList<FoodItem>();
         ArrayList<FoodItem> fruitVeggieList = new ArrayList<FoodItem>();
         ArrayList<FoodItem> otherList = new ArrayList<FoodItem>();
-        ArrayList<FoodItem> availableFoodItems = inventory.getFoodList();
+        ArrayList<FoodItem> availableFoodItems = inventory.shallowCopy().getFoodList();
         Iterator<FoodItem> fooderator = availableFoodItems.iterator();
         int size = availableFoodItems.size();
         while(fooderator.hasNext()){
@@ -424,13 +415,14 @@ public class Database extends Thread{
         }
         QuickSort(proteinList,0,proteinList.size()-1,6);
         QuickSort(grainsList,0,grainsList.size()-1,6);
-        QuickSort(fruitVeggieList,0,fruitVeggieList.size(),6);
+        QuickSort(fruitVeggieList,0,fruitVeggieList.size()-1,6);
         QuickSort(otherList,0,otherList.size()-1,6);
 
-        while(grains > 50 || protein> 50 || other > 50 || fruitVeggies > 50){
+        while(grains > 0 || protein> 0 || other > 0 || fruitVeggies > 0){
             double searchFactor = 1.10 - Math.random();
-            if(grains > 50){
-                itemA = searchByValue("grain content", (int)Math.round((float)grains*searchFactor*searchFactor));
+            if(grains > 0){
+                itemA = binarySearch(3,(int)Math.round((float)grains*searchFactor*searchFactor),grainsList);
+                grainsList.remove(itemA);
                 foodList.addFoodItem(itemA);
                 this.inventory.setFoodList(removeFromInventory(itemA,false)); //!!
                 grains -=itemA.getGrainContent();
@@ -438,8 +430,9 @@ public class Database extends Thread{
                 protein -=itemA.getProteinContent();
                 other -=itemA.getOtherContent();
             }
-           else if(protein > 50){
-                itemB = searchByValue("protein content", (int)Math.round((float)protein*searchFactor*searchFactor));
+           else if(protein > 0){
+                itemB = binarySearch(4, (int)Math.round((float)protein*searchFactor*searchFactor),proteinList);
+                proteinList.remove(itemB);
                 foodList.addFoodItem(itemB);
                 this.inventory.setFoodList(removeFromInventory(itemB, false)); //!
                 grains -=itemB.getGrainContent();
@@ -447,8 +440,9 @@ public class Database extends Thread{
                 protein -=itemB.getProteinContent();
                 other -=itemB.getOtherContent();
             }
-            else if(fruitVeggies > 50){
-                itemC = searchByValue("fruit veggies content",(int)Math.round((float)(fruitVeggies)*searchFactor*searchFactor));
+            else if(fruitVeggies > 0){
+                itemC = binarySearch(2,(int)Math.round((float)(fruitVeggies)*searchFactor*searchFactor),fruitVeggieList);
+                fruitVeggieList.remove(itemC);
                 foodList.addFoodItem(itemC);
                 this.inventory.setFoodList(removeFromInventory(itemC,false)); //!!
                 grains -=itemC.getGrainContent();
@@ -457,7 +451,8 @@ public class Database extends Thread{
                 other -=itemC.getOtherContent();
 
             }else{
-                itemD = searchByValue("other content",(int)Math.round((float)other*searchFactor*searchFactor));
+                itemD = binarySearch(5,(int)Math.round((float)other*searchFactor*searchFactor),otherList);
+                otherList.remove(itemD);
                 foodList.addFoodItem(itemD);
                 this.inventory.setFoodList(removeFromInventory(itemD,false)); //!!
                 grains -=itemD.getGrainContent();
@@ -471,7 +466,7 @@ public class Database extends Thread{
 
     //private FoodItem decisionAlgorithm(FoodItem itemA, FoodItem itemB, FoodItem itemC, FoodItem itemD){
 
-    public Hamper createHamper(ArrayList<Client> clients)throws SQLException, DatabaseException{
+    public Hamper createHamper(ArrayList<Client> clients)throws SQLException, DatabaseException,InterruptedException{
         FoodList foodList = getLeastWasteful(clients);
         Hamper hamper = new Hamper(clients,foodList);
         return hamper;
