@@ -6,7 +6,7 @@ import java.util.*;
  * @since 1.3
  * Part of the package {@code edu.ucalgary.ensf409}. Handles any connections with an SQL database.
  * Exists as an intermediate between the user and the database to maintain security
- * and integrity.
+ * and integrity. TODO: throw an exception if the client needs cannot be fulfilled
  */
 public class Database extends Thread{
     private String username;
@@ -111,9 +111,6 @@ public class Database extends Thread{
             return this.inventory.getFoodList();
         }
         else{return pointer;}
-    }
-    private ArrayList<FoodItem> resolveConflicts(ArrayList<ArrayList<FoodItem>> listOfLists){
-        return null;
     }
     /**
      * Updates the FoodList contained by the inventory to reflect 
@@ -323,6 +320,45 @@ public class Database extends Thread{
             return foodItems.get(rightBound);
         }
     }
+    public FoodItem binarySearch(int sortKey, int searchKey, FoodList inventory) throws DatabaseException{
+        if(this.sortKey != sortKey || sortKey == 0){
+            QuickSort(inventory.getFoodList(), 0, inventory.getFoodList().size()-1, sortKey);
+            this.sortKey = sortKey;
+        }
+        ArrayList<FoodItem> foodItems = inventory.getFoodList();
+        int leftBound = 0;
+        int rightBound = foodItems.size() - 1;
+        if(searchKey < foodItems.get(leftBound).getNumericAttribute(sortKey)){
+            return foodItems.get(0);
+        }
+        if(searchKey > foodItems.get(rightBound).getNumericAttribute(sortKey)){
+            return foodItems.get(rightBound);
+        }
+        while(leftBound <= rightBound){
+            int middle = (leftBound + rightBound)/2;
+            if(searchKey < foodItems.get(middle).getNumericAttribute(sortKey)){
+                rightBound = middle - 1;
+            }
+            else if(searchKey > foodItems.get(middle).getNumericAttribute(sortKey)){
+                leftBound = middle+1;
+            }
+            else{
+                return foodItems.get(middle);
+            }
+        }
+        int leftAttribute = foodItems.get(leftBound-1).getNumericAttribute(sortKey);
+        int rightAttribute = foodItems.get(rightBound).getNumericAttribute(sortKey);
+        if((leftAttribute - searchKey) < (searchKey - rightAttribute) && leftAttribute != 0){
+            return foodItems.get(leftBound);
+        }
+        else{
+            while(foodItems.get(rightBound).getNumericAttribute(sortKey) == 0 
+            && rightBound < foodItems.size()){
+                rightBound ++;
+            }
+            return foodItems.get(rightBound);
+        }
+    }
     public FoodList getLeastWasteful(ArrayList<Client> clients) throws DatabaseException, SQLException{
         Iterator<Client> iterator = clients.iterator();
         int totalGrainNeeds = 0;
@@ -348,31 +384,55 @@ public class Database extends Thread{
         FoodItem itemB = null;
         FoodItem itemC = null;
         FoodItem itemD = null;
-        //Multithreading:
-        //May not be possible because of the sorting of the array.
-        /*
-        while(calories>0){
-            FoodItem foodItem = searchByValue("Calories", calories);
-            foodList.addFoodItem(foodItem);
-            calories -= foodItem.getCalories();
-            grains -=foodItem.getGrainContent();
-            fruitVeggies -=foodItem.getFruitVeggiesContent();
-            protein -= foodItem.getProteinContent();
-            other -= foodItem.getOtherContent();
-            removeFromInventory(foodItem,true);
+
+        //sort items into food groups
+        //find the lowest calorie food that fit the requirements
+        ArrayList<FoodItem> grainsList = new ArrayList<FoodItem>();
+        ArrayList<FoodItem> proteinList = new ArrayList<FoodItem>();
+        ArrayList<FoodItem> fruitVeggieList = new ArrayList<FoodItem>();
+        ArrayList<FoodItem> otherList = new ArrayList<FoodItem>();
+        ArrayList<FoodItem> availableFoodItems = inventory.getFoodList();
+        Iterator<FoodItem> fooderator = availableFoodItems.iterator();
+        int size = availableFoodItems.size();
+        while(fooderator.hasNext()){
+            FoodItem foodItem = fooderator.next();
+            int g = foodItem.getGrainContent();
+            int fv = foodItem.getFruitVeggiesContent();
+            int pro = foodItem.getProteinContent();
+            int ot = foodItem.getOtherContent();
+            int[] a = {g,fv,pro,ot};
+            int max = 0;
+            for(int x = 0; x < 4; x++){
+                if(a[x] > max){
+                    max = a[x];
+                }
+            }
+            if(max == g){
+                grainsList.add(foodItem);
+            }
+            else if(max == fv){
+                fruitVeggieList.add(foodItem);
+
+            }
+            else if(max == pro){
+                proteinList.add(foodItem);
+            }
+            else{
+                otherList.add(foodItem);
+            }
+            removeFromInventory(foodItem, false);
         }
-        */
-        //double searchFactor = 1.00-(float)(1.5000/(float)(clients.size()));
-        
-        //Search for four food items, and add only then 
-        int ticker = 1;
+        QuickSort(proteinList,0,proteinList.size()-1,6);
+        QuickSort(grainsList,0,grainsList.size()-1,6);
+        QuickSort(fruitVeggieList,0,fruitVeggieList.size(),6);
+        QuickSort(otherList,0,otherList.size()-1,6);
+
         while(grains > 50 || protein> 50 || other > 50 || fruitVeggies > 50){
             double searchFactor = 1.10 - Math.random();
-            System.out.println("Current search factor: " + searchFactor);
             if(grains > 50){
                 itemA = searchByValue("grain content", (int)Math.round((float)grains*searchFactor*searchFactor));
                 foodList.addFoodItem(itemA);
-                this.inventory.setFoodList(removeFromInventory(itemA,true)); //!!
+                this.inventory.setFoodList(removeFromInventory(itemA,false)); //!!
                 grains -=itemA.getGrainContent();
                 fruitVeggies -=itemA.getFruitVeggiesContent();
                 protein -=itemA.getProteinContent();
@@ -390,7 +450,7 @@ public class Database extends Thread{
             else if(fruitVeggies > 50){
                 itemC = searchByValue("fruit veggies content",(int)Math.round((float)(fruitVeggies)*searchFactor*searchFactor));
                 foodList.addFoodItem(itemC);
-                this.inventory.setFoodList(removeFromInventory(itemC,true)); //!!
+                this.inventory.setFoodList(removeFromInventory(itemC,false)); //!!
                 grains -=itemC.getGrainContent();
                 fruitVeggies -=itemC.getFruitVeggiesContent();
                 protein -=itemC.getProteinContent();
@@ -399,7 +459,7 @@ public class Database extends Thread{
             }else{
                 itemD = searchByValue("other content",(int)Math.round((float)other*searchFactor*searchFactor));
                 foodList.addFoodItem(itemD);
-                this.inventory.setFoodList(removeFromInventory(itemD,true)); //!!
+                this.inventory.setFoodList(removeFromInventory(itemD,false)); //!!
                 grains -=itemD.getGrainContent();
                 fruitVeggies -=itemD.getFruitVeggiesContent();
                 protein -=itemD.getProteinContent();

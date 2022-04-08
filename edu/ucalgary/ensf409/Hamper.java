@@ -25,11 +25,11 @@ public class Hamper{
     public Hamper(ArrayList<Client> clients,FoodList foodList){
         this.clients = clients;
         this.foodList = foodList;
-        this.totalCalories = 0;
-        this.totalFruitVeggies = 0;
-        this.totalGrains = 0;
-        this.totalOther = 0;
-        this.totalProtein = 0;
+        this.totalCalories = foodList.getTotalCalories();
+        this.totalFruitVeggies = foodList.getFruitVeggiesContent();
+        this.totalGrains = foodList.getGrainContent();
+        this.totalOther = foodList.getOtherContent();
+        this.totalProtein = foodList.getProteinContent();
     }
     public ArrayList<Client> getClients(){
         return this.clients;
@@ -57,13 +57,5 @@ public class Hamper{
     }
     public int getTotalGrains(){
         return this.totalGrains;
-    }
-    public void findTotalCalories(){
-        Iterator<Client> itr = clients.iterator();
-        while(itr.hasNext()){
-
-        }
-
-
     }
 }

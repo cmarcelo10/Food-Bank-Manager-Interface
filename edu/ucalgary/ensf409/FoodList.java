@@ -8,7 +8,7 @@ import java.util.*;
  * @author Carter Marcelo <ahref>mailto :carter.marcelo@ucalgary.ca</a>
  * @see java.util.ArrayList
  */
-public class FoodList{
+public class FoodList implements Cloneable{
     private ArrayList<FoodItem> foodItems;
     private int wholeGrainsContent;
     private int fruitVeggieContent;
@@ -78,5 +78,12 @@ public class FoodList{
     }
     public int getTotalItems(){
         return this.foodItems.size();
+    }
+    public FoodList shallowCopy(){
+        ArrayList<FoodItem> copy = new ArrayList<FoodItem>();
+        for(FoodItem item: foodItems){
+            copy.add(item);
+        }
+        return new FoodList(copy);
     }
 }
