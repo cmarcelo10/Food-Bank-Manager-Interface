@@ -16,6 +16,13 @@ public class FoodList implements Cloneable{
     private int otherContent;
     private int calorieContent;
 
+    public static Comparator<FoodItem> compareByGrain = Comparator.comparing(f -> f.getGrainContent());
+    public static Comparator<FoodItem> compareByProtein = Comparator.comparing(f -> f.getProteinContent());
+    public static Comparator<FoodItem> compareByFruitVeggie = Comparator.comparing(f -> f.getFruitVeggiesContent());
+    public static Comparator<FoodItem> compareByOther = Comparator.comparing(f -> f.getOtherContent());
+    public static Comparator<FoodItem> compareByCalories = Comparator.comparing(f -> f.getCalories());
+    public static Comparator<FoodItem> compareByName = Comparator.comparing(f -> f.getName());
+
     public FoodList(){
         this.foodItems = new ArrayList<FoodItem>();
     }
@@ -31,6 +38,7 @@ public class FoodList implements Cloneable{
         this.otherContent = 0;
         this.proteinContent = 0;
         this.wholeGrainsContent = 0;
+        
         while(iterator.hasNext()){
             FoodItem temp = iterator.next();
             this.calorieContent += temp.getCalories();

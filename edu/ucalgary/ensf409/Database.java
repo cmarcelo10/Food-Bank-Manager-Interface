@@ -1,6 +1,8 @@
 package edu.ucalgary.ensf409;
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.*;
+
 /**
  * @version 1.5
  * @since 1.3
@@ -8,7 +10,7 @@ import java.util.*;
  * Exists as an intermediate between the user and the database to maintain security
  * and integrity. TODO: throw an exception if the client needs cannot be fulfilled
  */
-public class Database extends Thread{
+public class Database{
     private String username;
     private String url;
     private String password;
@@ -31,6 +33,9 @@ public class Database extends Thread{
         }
         if(updateStatus == false){
             throw new DatabaseException();
+        }
+        else{
+            System.out.println(updateStatus);
         }
     }
     public Client createClient(String clientType)throws SQLException{
@@ -286,9 +291,12 @@ public class Database extends Thread{
         int leftBound = 0;
         int rightBound = foodItems.size() - 1;
         if(searchKey < foodItems.get(leftBound).getNumericAttribute(sortKey)){
+
+            //if the key occurs at the start of the array
             return foodItems.get(0);
         }
         if(searchKey > foodItems.get(rightBound).getNumericAttribute(sortKey)){
+            //if the key occurs at the beginning of the array
             return foodItems.get(rightBound);
         }
         while(leftBound <= rightBound){
@@ -350,7 +358,7 @@ public class Database extends Thread{
             return foodItems.get(rightBound);
         }
     }
-    public FoodList getLeastWasteful(ArrayList<Client> clients) throws DatabaseException, SQLException, InterruptedException{
+    public FoodList getLeastWasteful(ArrayList<Client> clients) throws DatabaseException, SQLException{
         Iterator<Client> iterator = clients.iterator();
         int totalGrainNeeds = 0;
         int totalFVNeeds = 0;
@@ -366,31 +374,26 @@ public class Database extends Thread{
             totalCalories+=client.getCalories();
         }
         FoodList foodList = new FoodList();
-        int grains=totalGrainNeeds*7;
-        int fruitVeggies=totalFVNeeds*7;
-        int protein=totalProteinNeeds*7;
-        int other=totalOtherNeeds*7;
-        int calories=totalCalories*7;
-        FoodItem itemA = null;
-        FoodItem itemB = null;
-        FoodItem itemC = null;
-        FoodItem itemD = null;
-
+        totalGrainNeeds = totalGrainNeeds*7;
+        totalProteinNeeds = totalProteinNeeds*7;
+        totalFVNeeds = totalFVNeeds*7;
+        totalOtherNeeds = totalOtherNeeds*7;
+        int grains=0;
+        int fruitVeggies=0;
+        int protein=0;
+        int other=0;
         //sort items into food groups
         //find the lowest calorie food that fit the requirements
         ArrayList<FoodItem> grainsList = new ArrayList<FoodItem>();
         ArrayList<FoodItem> proteinList = new ArrayList<FoodItem>();
         ArrayList<FoodItem> fruitVeggieList = new ArrayList<FoodItem>();
         ArrayList<FoodItem> otherList = new ArrayList<FoodItem>();
-        ArrayList<FoodItem> availableFoodItems = inventory.shallowCopy().getFoodList();
-        Iterator<FoodItem> fooderator = availableFoodItems.iterator();
-        int size = availableFoodItems.size();
-        while(fooderator.hasNext()){
-            FoodItem foodItem = fooderator.next();
-            int g = foodItem.getGrainContent();
-            int fv = foodItem.getFruitVeggiesContent();
-            int pro = foodItem.getProteinContent();
-            int ot = foodItem.getOtherContent();
+        Object[] availableFoodItems = inventory.getFoodList().toArray();
+        for(Object foodItem : availableFoodItems){
+            int g = ((FoodItem)foodItem).getGrainContent();
+            int fv =((FoodItem)foodItem).getFruitVeggiesContent();
+            int pro = ((FoodItem)foodItem).getProteinContent();
+            int ot = ((FoodItem)foodItem).getOtherContent();
             int[] a = {g,fv,pro,ot};
             int max = 0;
             for(int x = 0; x < 4; x++){
@@ -399,74 +402,184 @@ public class Database extends Thread{
                 }
             }
             if(max == g){
-                grainsList.add(foodItem);
+                grainsList.add((FoodItem)foodItem);
             }
             else if(max == fv){
-                fruitVeggieList.add(foodItem);
+                fruitVeggieList.add((FoodItem)foodItem);
 
             }
             else if(max == pro){
-                proteinList.add(foodItem);
+                proteinList.add((FoodItem)foodItem);
             }
             else{
-                otherList.add(foodItem);
+                otherList.add((FoodItem)foodItem);
             }
-            removeFromInventory(foodItem, false);
         }
-        QuickSort(proteinList,0,proteinList.size()-1,6);
-        QuickSort(grainsList,0,grainsList.size()-1,6);
-        QuickSort(fruitVeggieList,0,fruitVeggieList.size()-1,6);
-        QuickSort(otherList,0,otherList.size()-1,6);
-
-        while(grains > 0 || protein> 0 || other > 0 || fruitVeggies > 0){
-            double searchFactor = 1.10 - Math.random();
-            if(grains > 0){
-                itemA = binarySearch(3,(int)Math.round((float)grains*searchFactor*searchFactor),grainsList);
-                grainsList.remove(itemA);
-                foodList.addFoodItem(itemA);
-                this.inventory.setFoodList(removeFromInventory(itemA,false)); //!!
-                grains -=itemA.getGrainContent();
-                fruitVeggies -=itemA.getFruitVeggiesContent();
-                protein -=itemA.getProteinContent();
-                other -=itemA.getOtherContent();
+        //Sort by the lowest average
+        Comparator<FoodItem> byPercentProtein = Comparator.comparing((item -> item.getPercentProtein()));
+        Comparator<FoodItem> byPercentWholeGrains = Comparator.comparing(item -> item.getPercentWholeGrains());
+        Comparator<FoodItem> byPercentFruitVeggies = Comparator.comparing(item -> item.getPercentFruitVeggies());
+        Comparator<FoodItem> byPercentOther = Comparator.comparing(item -> item.getPercentOther());
+        proteinList.sort(byPercentProtein);
+        grainsList.sort(byPercentWholeGrains);
+        fruitVeggieList.sort(byPercentFruitVeggies);
+        otherList.sort(byPercentOther);
+        //The process of finding the best content until the arrays are filled can be executed in parallel;
+        boolean needsMet = false;
+        boolean gMet = false;
+        boolean pMet = false;
+        boolean fMet = false;
+        boolean oMet = false;
+        boolean exceptionCaught = false;
+        boolean updateGrains = true;
+        boolean updatePro = true;
+        boolean updateFV = true;
+        boolean updateOth = true;
+        while(!needsMet){
+            ExecutorService taskPool = Executors.newFixedThreadPool(4);
+            List<Parser> tasks = new ArrayList<Parser>();
+            if(updateGrains && grainsList.isEmpty() == false){
+                int sum1 = findAverageParameter("grains", grainsList);
+                tasks.add(new Parser(grainsList,"grains", sum1));
             }
-           else if(protein > 0){
-                itemB = binarySearch(4, (int)Math.round((float)protein*searchFactor*searchFactor),proteinList);
-                proteinList.remove(itemB);
-                foodList.addFoodItem(itemB);
-                this.inventory.setFoodList(removeFromInventory(itemB, false)); //!
-                grains -=itemB.getGrainContent();
-                fruitVeggies -=itemB.getFruitVeggiesContent();
-                protein -=itemB.getProteinContent();
-                other -=itemB.getOtherContent();
+            if(updatePro && proteinList.isEmpty() == false){
+                int sum3 = findAverageParameter("protein", proteinList);
+                tasks.add(new Parser(proteinList,"protein",sum3));
             }
-            else if(fruitVeggies > 0){
-                itemC = binarySearch(2,(int)Math.round((float)(fruitVeggies)*searchFactor*searchFactor),fruitVeggieList);
-                fruitVeggieList.remove(itemC);
-                foodList.addFoodItem(itemC);
-                this.inventory.setFoodList(removeFromInventory(itemC,false)); //!!
-                grains -=itemC.getGrainContent();
-                fruitVeggies -=itemC.getFruitVeggiesContent();
-                protein -=itemC.getProteinContent();
-                other -=itemC.getOtherContent();
-
+            if(updateFV && fruitVeggieList.isEmpty()==false){
+                int sum2 = findAverageParameter("fruit veggies", fruitVeggieList);
+                tasks.add(new Parser(fruitVeggieList,"fruit veggies",sum2));
+            }
+            if(!oMet && updateOth && otherList.isEmpty() == false){
+                int sum4 = findAverageParameter("other", otherList);
+                tasks.add(new Parser(otherList,"other",(int)Math.round(sum4)));
+            }
+            List<Future<FoodItem>> futures = null;
+            try{
+                futures = taskPool.invokeAll(tasks);
+            }catch(Exception e){
+                e.printStackTrace();
+                exceptionCaught = true;
+            }finally{
+                taskPool.shutdown();
+                if(exceptionCaught){
+                    throw new DatabaseException("an unknown error occured while handling the request");
+                }
+            }
+            for(int p = 0; p < futures.size(); p++){
+                Future<FoodItem> results = futures.get(p);
+                try{
+                    //room to play around with filling methods here. Alternatively
+                    //we only add the item that has the largest impact on the needs overall
+                    FoodItem item = results.get();
+                    grains+=item.getGrainContent();
+                    protein+=item.getProteinContent();
+                    fruitVeggies+=item.getFruitVeggiesContent();
+                    other+=item.getOtherContent();
+                    if(grainsList.contains(item)){
+                        grainsList.remove(item);
+                    }
+                    else if(proteinList.contains(item)){
+                        proteinList.remove(item);
+                    }
+                    else if(fruitVeggieList.contains(item)){
+                        fruitVeggieList.remove(item);
+                    }
+                    else{
+                        otherList.remove(item);
+                    }
+                    foodList.addFoodItem(item);
+                }
+                catch(InterruptedException | ExecutionException e){
+                    e.printStackTrace();
+                    throw new DatabaseException("An error occurred while handling the parallel proccessed food list");
+                }
+            }
+            gMet = grains >= totalGrainNeeds;
+            pMet = protein >=totalProteinNeeds;
+            fMet = fruitVeggies >= totalFVNeeds;
+            oMet = other >= totalOtherNeeds;
+            if(gMet && pMet && fMet){
+                needsMet = true;
             }else{
-                itemD = binarySearch(5,(int)Math.round((float)other*searchFactor*searchFactor),otherList);
-                otherList.remove(itemD);
-                foodList.addFoodItem(itemD);
-                this.inventory.setFoodList(removeFromInventory(itemD,false)); //!!
-                grains -=itemD.getGrainContent();
-                fruitVeggies -=itemD.getFruitVeggiesContent();
-                protein -=itemD.getProteinContent();
-                other -=itemD.getOtherContent();
+                boolean a = grainsList.isEmpty();
+                boolean b = proteinList.isEmpty();
+                boolean c = fruitVeggieList.isEmpty();
+                boolean d = otherList.isEmpty();
+                if(a){
+                    updateGrains = false;
+                }
+                if(b){
+                    updatePro = false;
+                }
+                if(c){
+                    updateFV = false;
+                }
+                if(d){
+                    updateOth = false;
+                }
             }
         }
         return foodList;
     }
+    /**
+     * Translates a String key into the appropriate numeric value for the system
+     * @param key is the String key to be converted into a numeric key.
+     * <br>{@code searchKey = 1} correlates to the value of ItemID </br> 
+     * <br>{@code searchKey = 2} correlates to the value of {@code getGrainContent()}</br>
+     * <br>{@code searchKey = 3} correlates to the value of {@code getFruitVeggiesContent()}</br>
+     * <br>{@code searchKey = 4} correlates to the value of {@code getProteinContent()}</br>
+     * <br>{@code searchKey = 5} correlates to the value of {@code getOtherContent()}</br>
+     * <br>{@code searchKey = 6} correlates to the value of {@code getCalories()}</br>
+     * <br><b>Note: values 1 and 6 are not allowed in this method.</b></br>.
+     * @return the {@int} key corresponding the input String key; -1 if the key was invalid.
+     * @throws DatabaseException if an invalid search key is specified (0);
+     * @return
+     */
+    public int stringToNumericKey(String key) throws DatabaseException{
+        int temp = 0;
+        switch(key = key.toLowerCase().trim()){
+            case "itemid":
+                temp = 1;
+            case "fruit veggies content":
+                temp = 2;
+            case "grain content":
+                temp = 3;
+            case "protein content":
+                temp = 4;
+            case "other content":
+                temp = 5;
+            case "calories":
+                temp = 6;
+            case "grains":
+                temp = 6;
+            case "fruit veggies":
+                temp = 2;
+            case "protein":
+                temp = 4;
+            case "other":
+                temp = 5;
+        }
+        if(temp == 0){
+            throw new DatabaseException("Invalid search key argument " + key);
+        }
+        else return temp;
+    }
+    public int findAverageParameter(String searchKey, ArrayList<FoodItem> list) throws DatabaseException, IllegalArgumentException{
+        int key = stringToNumericKey(searchKey);
+        if(key == 1){
+            throw new IllegalArgumentException("Invalid parameter: " + key);
+        }
+        int count = list.size();
+        int total = 0;
+        for(FoodItem item : list){
+           total += item.getNumericAttribute(key);
+        }
+        double avg = total / count;
+        return (int)Math.round(avg);
 
-    //private FoodItem decisionAlgorithm(FoodItem itemA, FoodItem itemB, FoodItem itemC, FoodItem itemD){
-
-    public Hamper createHamper(ArrayList<Client> clients)throws SQLException, DatabaseException,InterruptedException{
+    }
+    public Hamper createHamper(ArrayList<Client> clients)throws SQLException, DatabaseException{
         FoodList foodList = getLeastWasteful(clients);
         Hamper hamper = new Hamper(clients,foodList);
         return hamper;

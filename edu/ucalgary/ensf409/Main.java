@@ -1,4 +1,5 @@
 package edu.ucalgary.ensf409;
+import java.sql.*;
 import java.util.*;
 public class Main{
     public static void main(String args[]) throws Exception{
@@ -8,22 +9,21 @@ public class Main{
         Database database = new Database(url, user, password);
         FoodList foodList = database.getAvailableFoodList();
         var theList = foodList.getFoodList();
-        database.sortByKey("calories");
-        FoodItem item = database.searchByValue("calories", 2105);
-        System.out.println(item.getItemInfo());
+        //FoodItem item = database.searchByValue("calories", 2105);
+        //System.out.println(item.getItemInfo());
         Client clientA = database.createClient("Adult Male");
         Client clientB = database.createClient("Adult Female");
         Client clientC = database.createClient("Child under 8");
-        Client clientD = database.createClient("Child over 8");
-        Client clientE = database.createClient("Child over 8");
+      //  Client clientD = database.createClient("Child over 8");
 
         ArrayList<Client> clients = new ArrayList<Client>();
         int calTotal = 0;
         clients.add(clientA);
         clients.add(clientB);
         clients.add(clientC);
-        clients.add(clientD);
-        clients.add(clientE);
+        //clients.add(clientD);
+        //clients.add(clientF);
+        //clients.add(clientE);
         Iterator<Client> iter = clients.iterator();
         while(iter.hasNext()){
            var temp = iter.next();
