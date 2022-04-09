@@ -13,7 +13,7 @@ public class FoodItem implements Comparator<FoodItem>{
     private final int PERCENT_FRUIT_VEGGIES;
     private final int PERCENT_OTHER;
     @Override public int compare(FoodItem item1, FoodItem item2){
-        return Integer.compare(item1.CALORIES, item2.CALORIES);
+        return Integer.compare(item1.getCalories(), item2.getCalories());
     }
     public FoodItem(int itemid, String name, int grainContent, 
     int proteinContent, int fruitVeggiesContent, int otherContent, int calories){
@@ -127,5 +127,7 @@ public class FoodItem implements Comparator<FoodItem>{
         else{
             throw new IllegalArgumentException(String.format("Invalid input to function '%s'",key));
         }
+    }public int compareTo(FoodItem foodItem){
+        return compare(this,foodItem);
     }
 }

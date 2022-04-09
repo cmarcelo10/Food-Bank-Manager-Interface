@@ -10,38 +10,59 @@ public class Parser extends Thread implements Callable <FoodItem>{
         this.sortKey = sortKey;
         this.searchKey = searchKey;
     }
-    private FoodItem binarySearch(String searchKey, int sortKey) throws IllegalArgumentException{
+   
+    /**
+     * 
+     * @param left the index of the first element to be compared
+     * @param right the index of the other element to be compared against the first
+     * @param searchKey the attribute to perform the comparison
+     * @return the FoodItem deemed the most optimal by the comparison
+     */
+    private FoodItem binarySearch(String sKey, int sortKey) throws IllegalArgumentException{
+
+        int searchKey = Database.stringToNumericKey(sKey);
         ArrayList<FoodItem> foodItems = itemList;
         int leftBound = 0;
         int rightBound = foodItems.size() - 1;
-        if(sortKey < foodItems.get(leftBound).getPercentContent(searchKey)){
+        if(sortKey < foodItems.get(leftBound).getNumericAttribute(searchKey)){
 
             //if the key occurs at the start of the array
             return foodItems.get(0);
         }
-        if(sortKey > foodItems.get(rightBound).getPercentContent(searchKey)){
+        if(sortKey > foodItems.get(rightBound).getNumericAttribute(searchKey)){
             //if the key occurs at the beginning of the array
             return foodItems.get(rightBound);
         }
         while(leftBound <= rightBound){
             int middle = (leftBound + rightBound)/2;
-            if(sortKey < foodItems.get(middle).getPercentContent(searchKey)){
+            if(sortKey < foodItems.get(middle).getNumericAttribute(searchKey)){
                 rightBound = middle - 1;
             }
-            else if(sortKey > foodItems.get(middle).getPercentContent(searchKey)){
+            else if(sortKey > foodItems.get(middle).getNumericAttribute(searchKey)){
                 leftBound = middle+1;
             }
             else{
                 return foodItems.get(middle);
             }
         }
-        int leftAttribute = foodItems.get(leftBound-1).getPercentContent(searchKey);
-        int rightAttribute = foodItems.get(rightBound).getPercentContent(searchKey);
+        leftBound = leftBound -1;
+        int leftAttribute = foodItems.get(leftBound).getNumericAttribute(searchKey);
+        int rightAttribute = foodItems.get(rightBound).getNumericAttribute(searchKey);
         if((leftAttribute - sortKey) < (sortKey - rightAttribute) && leftAttribute != 0){
             return foodItems.get(leftBound);
         }
+        else if(((leftAttribute - sortKey) == (sortKey - rightAttribute)) && leftAttribute != 0){
+           var option1 = foodItems.get(leftBound);
+           var option2 = foodItems.get(rightBound);
+           if(option1.compareTo(option2)<0){
+               return option1;
+           }
+           else{
+               return option2;
+           }
+        }
         else{
-            while(foodItems.get(rightBound).getPercentContent(searchKey) == 0 
+            while(foodItems.get(rightBound).getNumericAttribute(searchKey) == 0 
             && rightBound < foodItems.size()){
                 rightBound ++;
             }
