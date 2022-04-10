@@ -8,7 +8,7 @@ import java.util.concurrent.*;
  * @since 1.3
  * Part of the package {@code edu.ucalgary.ensf409}. Handles any connections with an SQL database.
  * Exists as an intermediate between the user and the database to maintain security
- * and integrity. TODO: throw an exception if the client needs cannot be fulfilled
+ * and integrity.
  * I feel like this should be an abstract class.
  */
 public class Database{
@@ -16,9 +16,7 @@ public class Database{
     private String url;
     private String password;
     private Connection dbConnect;
-    private ResultSet results;
     private FoodList inventory;
-    private int sortKey;
     public Database(String url, String user, String password)
     throws DatabaseException, SQLException{
         this.url = url;
@@ -34,9 +32,6 @@ public class Database{
         }
         if(updateStatus == false){
             throw new DatabaseException();
-        }
-        else{
-            System.out.println(updateStatus);
         }
     }
     public Client createClient(String clientType)throws SQLException{
@@ -76,7 +71,6 @@ public class Database{
      * @throws DatabaseException
      */
     public ArrayList<FoodItem> removeFromInventory(FoodItem foodItem, boolean update) throws SQLException, DatabaseException{
-        boolean status = true;
         boolean updateStatus = true;
         ArrayList<FoodItem> pointer = inventory.getFoodList();
         try{
@@ -100,7 +94,6 @@ public class Database{
             }
             catch(SQLException exception){
                 dbConnect.rollback();
-                status = false;
             }
         }
         catch(SQLException except){
@@ -142,6 +135,7 @@ public class Database{
         this.inventory = null;
         boolean status = true;
         FoodList list = new FoodList();
+        ResultSet results = null;
         try{
             try{
                 dbConnect = DriverManager.getConnection(url, username, password);
@@ -192,7 +186,6 @@ public class Database{
         else{
             throw new DatabaseException(sortKey + " is not a valid option");
         }
-        this.sortKey = key;
         var foodList = this.inventory.getFoodList();
         QuickSort(foodList, 0, foodList.size()-1,key);
     }
@@ -306,7 +299,6 @@ public class Database{
         int leftBound = 0;
         int rightBound = foodItems.size() - 1;
         if(searchKey < foodItems.get(leftBound).getNumericAttribute(sortKey)){
-
             //if the key occurs at the start of the array
             return foodItems.get(0);
         }
@@ -388,6 +380,7 @@ public class Database{
         int totalProteinNeeds = 0;
         int totalOtherNeeds = 0;
         int totalCalories = 0;
+
         while(iterator.hasNext()){
             Client client = iterator.next();
             totalGrainNeeds+=client.getGrains();
@@ -425,68 +418,93 @@ public class Database{
         ArrayList<FoodItem> fruitVeggieList = new ArrayList<FoodItem>();
         ArrayList<FoodItem> otherList = new ArrayList<FoodItem>();
         Object[] availableFoodItems = inventory.getFoodList().toArray();
+        List<Callable<Void>> callables = new ArrayList<Callable<Void>>();
         for(Object foodItem : availableFoodItems){
-            int g = ((FoodItem)foodItem).getGrainContent();
-            int fv =((FoodItem)foodItem).getFruitVeggiesContent();
-            int pro = ((FoodItem)foodItem).getProteinContent();
-            int ot = ((FoodItem)foodItem).getOtherContent();
-            int[] a = {g,fv,pro,ot};
-            int max = 0;
-            for(int x = 0; x < 4; x++){
-                if(a[x] > max){
-                    max = a[x];
-                }
-            }
-            if(max == g){
-                grainsList.add((FoodItem)foodItem);
-            }
-            else if(max == fv){
-                fruitVeggieList.add((FoodItem)foodItem);
+            Callable<Void> grouper = new Callable<Void>(){
+                public Void call(){
+                    int g = ((FoodItem)foodItem).getGrainContent();
+                    int fv =((FoodItem)foodItem).getFruitVeggiesContent();
+                    int pro = ((FoodItem)foodItem).getProteinContent();
+                    int ot = ((FoodItem)foodItem).getOtherContent();
+                    int[] a = {g,fv,pro,ot};
+                    int max = 0;
+                    for(int x = 0; x < 4; x++){
+                        if(a[x] > max){
+                            max = a[x];
+                        }
+                    }
+                    if(max == g){
+                        grainsList.add((FoodItem)foodItem);
+                    }
+                    else if(max == fv){
+                        fruitVeggieList.add((FoodItem)foodItem);
+        
+                    }
+                    else if(max == pro){
+                        proteinList.add((FoodItem)foodItem);
+                    }
+                    else{
+                        otherList.add((FoodItem)foodItem);
+                    }
+                    return null;
+                };
+            };
+            callables.add(grouper);
+        }
+        boolean exception1 = false;
+        int cores = Runtime.getRuntime().availableProcessors();
+        ExecutorService executor1 = Executors.newFixedThreadPool(cores);
+        try{
+            executor1.invokeAll(callables);
 
+        }
+        catch(InterruptedException e){
+            e.printStackTrace();
+            exception1 = true;
+        }
+        finally{
+            executor1.shutdown();
+            if(exception1){
+                throw new DatabaseException("An error occurred while parsing the data");
             }
-            else if(max == pro){
-                proteinList.add((FoodItem)foodItem);
-            }
-            else{
-                otherList.add((FoodItem)foodItem);
-            }
+        }
 
             //Concurrency = doing two different things at the same time
             //Parallelism = doing the same thing multiple times concurrently
 
-            var list = inventory.getFoodList();
-            QuickSort(list,0,list.size()-1,6); //sorts the foodList by calorie amounts
-            int key = stringToNumericKey("calories");
-            while(calories < totalCalories){
-                int difference = totalCalories - calories;
-                FoodItem pointer = binarySearch(key,difference,list);
-                grains+=pointer.getGrainContent();
-                fruitVeggies+=0;
-                protein+=pointer.getProteinContent();
-                other+=pointer.getOtherContent();
-                calories+=pointer.getCalories();
-                if(grainsList.contains(pointer)){
-                    grainsList.remove(pointer);
-                }
-                else if(proteinList.contains(pointer)){
-                    proteinList.remove(pointer);
-                }
-                else if(fruitVeggieList.contains(pointer)){
-                    fruitVeggieList.remove(pointer);
-                }
-                else{
-                    otherList.remove(pointer);
-                }
-                foodList.addFoodItem(pointer);
+        var list = inventory.getFoodList();
+        QuickSort(list,0,list.size()-1,6); //sorts the foodList by calorie amounts
+        int key = stringToNumericKey("calories");
+        while(calories < totalCalories){
+            int difference = totalCalories - calories;
+            FoodItem pointer = binarySearch(key,difference,list);
+            grains+=pointer.getGrainContent();
+            fruitVeggies+=0;
+            protein+=pointer.getProteinContent();
+            other+=pointer.getOtherContent();
+            calories+=pointer.getCalories();
+            if(grainsList.contains(pointer)){
+                grainsList.remove(pointer);
             }
+            else if(proteinList.contains(pointer)){
+                proteinList.remove(pointer);
+            }
+            else if(fruitVeggieList.contains(pointer)){
+                fruitVeggieList.remove(pointer);
+            }
+            else{
+                otherList.remove(pointer);
+            }
+            foodList.addFoodItem(pointer);
         }
         Comparator<FoodItem> byProtein = Comparator.comparing((item -> item.getProteinContent()));
         Comparator<FoodItem> byWholeGrains = Comparator.comparing(item -> item.getGrainContent());
         Comparator<FoodItem> byFruitVeggies = Comparator.comparing(item -> item.getFruitVeggiesContent());
         Comparator<FoodItem> byOther = Comparator.comparing(item -> item.getOtherContent());
         Comparator<FoodItem> byCalorie = Comparator.comparing(item -> item.getCalories());
-        ExecutorService executor = Executors.newWorkStealingPool();
-        List<Callable<Void>> callables = new ArrayList<Callable<Void>>();
+        int cpus = Runtime.getRuntime().availableProcessors();
+        ExecutorService executor = Executors.newFixedThreadPool(cpus);
+        callables = new ArrayList<Callable<Void>>();
         callables.add(new Callable<Void>(){public Void call(){proteinList.sort(byProtein); return null;}});
         callables.add(new Callable<Void>(){public Void call(){grainsList.sort(byWholeGrains); return null;}});
         callables.add(new Callable<Void>(){public Void call(){fruitVeggieList.sort(byFruitVeggies);return null;}});
@@ -503,8 +521,9 @@ public class Database{
             }
         }
         //brute-force find food items that fill the needs gap
+        cpus = Runtime.getRuntime().availableProcessors();
         while(!needsMet){
-            ExecutorService taskPool = Executors.newWorkStealingPool();
+            ExecutorService taskPool = Executors.newFixedThreadPool(cpus);
             List<Parser> tasks = new ArrayList<Parser>();
             if(!gMet && grainsList.isEmpty() == false){
                 tasks.add(new Parser(grainsList,"grains", (totalGrainNeeds - grains)));
@@ -753,7 +772,7 @@ public class Database{
         FoodList foodList2 = new FoodList(foodList);
         var ptr = foodList2.getFoodList();
         for(FoodItem item: ptr){
-            removeFromInventory(item,true);
+            removeFromInventory(item,false);
         }
         Hamper hamper = new Hamper(clients,foodList2);
         return hamper;
