@@ -1,5 +1,7 @@
 package edu.ucalgary.ensf409;
 import java.util.*;
+
+import javax.lang.model.util.Elements.Origin;
 /**
  * A class of the package {@code edu.ucalgary.ensf409} 
  * that holds {@code FoodItem} objects in an {@code ArrayList} data structure.
@@ -8,7 +10,7 @@ import java.util.*;
  * @author Carter Marcelo <ahref>mailto :carter.marcelo@ucalgary.ca</a>
  * @see java.util.ArrayList
  */
-public class FoodList implements Cloneable{
+public class FoodList{
     private ArrayList<FoodItem> foodItems;
     private int wholeGrainsContent;
     private int fruitVeggieContent;
@@ -32,15 +34,15 @@ public class FoodList implements Cloneable{
     }
     private void updateAllFields(){
         //Multithreadable task
-        Iterator<FoodItem> iterator = this.foodItems.iterator();
+        Iterator<FoodItem> iterator = foodItems.iterator();
         this.calorieContent = 0;
         this.fruitVeggieContent = 0;
         this.otherContent = 0;
         this.proteinContent = 0;
         this.wholeGrainsContent = 0;
-        
-        while(iterator.hasNext()){
-            FoodItem temp = iterator.next();
+
+        while(iterator.hasNext()){ 
+            FoodItem temp = iterator.next(); 
             this.calorieContent += temp.getCalories();
             this.fruitVeggieContent +=temp.getFruitVeggiesContent();
             this.proteinContent += temp.getProteinContent();
@@ -48,21 +50,44 @@ public class FoodList implements Cloneable{
             this.otherContent +=temp.getOtherContent();
         }
     }
-    public ArrayList<FoodItem> getFoodList(){
+    public ArrayList<FoodItem> toArrayList(){
         return this.foodItems;
     }
     public void setFoodList(ArrayList<FoodItem> foodList){
         this.foodItems = foodList;
+        updateAllFields();
     }
     public FoodItem getFoodItem(int index){
         return this.foodItems.get(index);
     }
+    /**
+     * Removes a specified foodItem from the list and updates the fields of this object to
+     * match the current items.
+     * @param item is the item to remove from the list
+     * @return {@code true} if the item exists in the list, or equivalently, if the size
+     * of the list changed as a result of the operation
+     */
+    public boolean removeFoodItem(FoodItem item){
+        if(foodItems.remove(item)){
+            updateAllFields();
+            return true;
+        }else{
+            return false;
+        }
+    }
     public void replaceFoodItem(int index, FoodItem foodItem){
+        FoodItem item = foodItems.get(index);
         this.foodItems.set(index,foodItem);
-        updateAllFields();
+        this.calorieContent += (foodItem.getCalories() - item.getCalories());
+        this.wholeGrainsContent += (foodItem.getGrainContent() - item.getGrainContent());
+        this.fruitVeggieContent += (foodItem.getFruitVeggiesContent()-item.getFruitVeggiesContent());
+        this.proteinContent += (foodItem.getProteinContent() - item.getProteinContent());
+        this.otherContent += (foodItem.getOtherContent() - item.getOtherContent());
+
     }
     public void replaceFoodItem(FoodItem original, FoodItem substitute){
-        this.foodItems.set(this.foodItems.indexOf(original),substitute);
+        int index = foodItems.indexOf(original);
+        replaceFoodItem(index, substitute);
         updateAllFields();
     }
     public void addFoodItem(FoodItem foodItem){
@@ -86,12 +111,5 @@ public class FoodList implements Cloneable{
     }
     public int getTotalItems(){
         return this.foodItems.size();
-    }
-    public FoodList shallowCopy(){
-        ArrayList<FoodItem> copy = new ArrayList<FoodItem>();
-        for(FoodItem item: foodItems){
-            copy.add(item);
-        }
-        return new FoodList(copy);
     }
 }

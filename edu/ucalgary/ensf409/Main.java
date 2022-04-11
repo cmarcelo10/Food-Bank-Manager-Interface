@@ -1,6 +1,8 @@
 package edu.ucalgary.ensf409;
 import java.sql.*;
 import java.util.*;
+
+
 public class Main{
     public static void main(String args[]) throws Exception{
         String url = "jdbc:mysql://localhost:3306/food_inventory";
@@ -8,7 +10,7 @@ public class Main{
         String password = "password";
         Database database = new Database(url, user, password);
         FoodList foodList = database.getAvailableFoodList();
-        var theList = foodList.getFoodList();
+        var theList = foodList.toArrayList();
         //FoodItem item = database.searchByValue("calories", 2105);
         //System.out.println(item.getItemInfo());
         Client clientA = database.createClient("Adult Male");
@@ -37,17 +39,18 @@ public class Main{
            fvTotal+=temp.getFruitVeggies();
            pTotal+=temp.getProtein();
         }
-        FoodList list = database.getLeastWasteful(clients);
-        ArrayList<FoodItem> list2 = list.getFoodList();
-        Iterator<FoodItem> iterator = list2.iterator();
-        while(iterator.hasNext()){
-            System.out.println(iterator.next().getItemInfo());
-        }
-        System.out.println(calTotal*7);
-        System.out.println(list.getTotalCalories());
-        System.out.println((othTotal*7) < list.getOtherContent());
-        System.out.println(gTotal*7 < list.getGrainContent());
-        System.out.println(fvTotal*7 < list.getFruitVeggiesContent());
-        System.out.println(pTotal*7 < list.getProteinContent());
+        Hamper hamper = database.createHamper(clients);
+        FoodList list = hamper.getFoodList();
+        System.out.println(String.format("\n\n%-15s%-15s%-15s%-15s","Field","Expected","Actual","Overflow"));
+        System.out.println(String.format("%-15s%-15d%-15d%-15d","Calories:", 
+        calTotal*7,list.getTotalCalories(),list.getTotalCalories()-calTotal*7));
+        System.out.println(String.format("%-15s%-15d%-15d%-15d","Grains:", 
+        gTotal*7, list.getGrainContent(), list.getGrainContent()-gTotal*7));
+        System.out.println(String.format("%-15s%-15d%-15d%-15d","FV:", 
+        fvTotal*7, list.getFruitVeggiesContent(),list.getFruitVeggiesContent()-fvTotal*7));
+        System.out.println(String.format("%-15s%-15d%-15d%-15d","Protein:", 
+        pTotal*7, list.getProteinContent(), list.getProteinContent()-pTotal*7));
+        System.out.println(String.format("%-15s%-15d%-15d%-15d\n","Other:",
+        othTotal*7, list.getOtherContent(),list.getOtherContent()-othTotal*7));
     }
 }

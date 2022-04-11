@@ -37,11 +37,14 @@ public class Hamper{
     public void setClients(ArrayList<Client> clients){
         this.clients = clients;
     }
-    public FoodList getFoodList(){
+    public FoodList toArrayList(){
         return this.foodList;
     }
     public void setFoodList (FoodList foodList){
         this.foodList = foodList;
+    }
+    public FoodList getFoodList(){
+        return this.foodList;
     }
     public int getTotalCalories(){
         return this.totalCalories;
