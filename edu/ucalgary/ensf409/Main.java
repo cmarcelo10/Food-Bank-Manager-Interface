@@ -52,5 +52,6 @@ public class Main{
         pTotal*7, list.getProteinContent(), list.getProteinContent()-pTotal*7));
         System.out.println(String.format("%-15s%-15d%-15d%-15d\n","Other:",
         othTotal*7, list.getOtherContent(),list.getOtherContent()-othTotal*7));
+        System.out.println((double)((double)list.getTotalCalories()/(double)(calTotal*7))*100);
     }
 }

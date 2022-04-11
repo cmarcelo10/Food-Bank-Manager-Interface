@@ -29,7 +29,7 @@ public class Client{
         this.CLIENT_ID = clientID;
         this.CLIENT_TYPE = getValidClientType(clientType);
         this.CALORIES = calories;
-        this.WHOLE_GRAINS = 
+        this.WHOLE_GRAINS = Math.round((float)((float)(calories*grains)/100));
         this.PROTEIN = Math.round((float)((float)(calories*protein)/100));
         this.FRUIT_VEGGIES = Math.round((float)((float)(calories*fruitVeggies)/100));
         this.OTHER = Math.round((float)((float)(calories*other)/100));

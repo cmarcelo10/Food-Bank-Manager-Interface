@@ -14,7 +14,7 @@ public class Database{
     private String url;
     private String password;
     private Connection dbConnect;
-    private FoodList inventory;
+    private volatile FoodList inventory;
     protected Comparator<FoodItem> byProtein 
     = Comparator.comparing((item -> item.getProteinContent()));
     protected Comparator<FoodItem> byWholeGrains
@@ -382,8 +382,11 @@ public class Database{
         }
     }
     /**
+     * A complicated method that attempts to find the best combination of items for the clients;
+     * It can infintely loop if there are insufficient items available
      * Lines 560 - 563 inclusively hold the adjustment parameters for overflow limits on each 
      * nutrient type;
+     * TODO: FIX INFINITE LOOP IF INSUFFICIENT ITEMS;
      * @param clients
      * @return the least waste
      * @throws DatabaseException
@@ -478,33 +481,6 @@ public class Database{
 
             //Concurrency = doing two different things at the same time
             //Parallelism = doing the same thing multiple times concurrently
-
-        var list = inventory.toArrayList();
-        QuickSort(list,0,list.size()-1,6); //sorts the foodList by calorie amounts
-        int key = stringToNumericKey("calories");
-    
-        while(calories < totalCalories){
-            int difference = totalCalories - calories;
-            FoodItem pointer = binarySearch(key,difference,list);
-            grains+=pointer.getGrainContent();
-            fruitVeggies+=pointer.getFruitVeggiesContent();
-            protein+=pointer.getProteinContent();
-            other+=pointer.getOtherContent();
-            calories+=pointer.getCalories();
-            if(grainsList.contains(pointer)){
-                grainsList.remove(pointer);
-            }
-            else if(proteinList.contains(pointer)){
-                proteinList.remove(pointer);
-            }
-            else if(fruitVeggieList.contains(pointer)){
-                fruitVeggieList.remove(pointer);
-            }
-            else{
-                otherList.remove(pointer);
-            }
-            foodList.addFoodItem(pointer);
-        }
         int cpus = Runtime.getRuntime().availableProcessors();
         ExecutorService executor = Executors.newFixedThreadPool(cpus);
         callables = new ArrayList<Callable<Void>>();
@@ -524,20 +500,22 @@ public class Database{
             }
         }
         //brute-force find food items that fill the needs gap
+
+        //TODO: add a "worst-case" mode that attempts to brute force the hamper if the needs cannot be met.
         cpus = Runtime.getRuntime().availableProcessors();
-        while(!needsMet){
+        while(!needsMet){ //TOP of the loop :)
             ExecutorService taskPool = Executors.newFixedThreadPool(cpus);
             List<Parser> tasks = new ArrayList<Parser>();
-            if(!gMet && grainsList.isEmpty() == false){
+            if(grains < totalGrainNeeds && grainsList.isEmpty() == false){
                 tasks.add(new Parser(grainsList,"grains", (totalGrainNeeds - grains)));
             }
-            if(!pMet && proteinList.isEmpty() == false){
+            if(proteinList.isEmpty() == false){
                 tasks.add(new Parser(proteinList,"protein",(totalProteinNeeds - protein)));
             }
-            if(!fMet && fruitVeggieList.isEmpty()==false){
+            if(fruitVeggieList.isEmpty()==false){
                 tasks.add(new Parser(fruitVeggieList,"fruit veggies",(totalFVNeeds - fruitVeggies)));
             }
-            if(!oMet && other < totalOtherNeeds && updateOth && otherList.isEmpty() == false){
+            if(otherList.isEmpty() == false){
                 tasks.add(new Parser(otherList,"other",totalOtherNeeds - other));
             }
             List<Future<FoodItem>> futures = null;
@@ -573,7 +551,7 @@ public class Database{
             //y++ = increment field for item 
 
             // Field  (G, F, P, O, added?)
-            // Column (0, 1, 2, 3,   5   )
+            // Column (0, 1, 2, 3,   4   )
 
             int acceptableGCOverflow = 0; //individually adjust these parameters
             int acceptableFVCOverflow = 0; // to set overflow limits for each content type
@@ -581,6 +559,7 @@ public class Database{
             int acceptableOCOverflow = 0;
 
             //Determine if an item should or should not be added to the FoodList
+            //The algorithm has the power to "ignore" bad options making it more efficient.
             options.sort(byCalorie);
             while(k < options.size()){
                 FoodItem item = options.get(k);
@@ -633,6 +612,7 @@ public class Database{
                         otherList.remove(item);
                     }
                     foodList.addFoodItem(item);
+                    calories +=item.getCalories();
                     grains+=item.getGrainContent();
                     protein+=item.getProteinContent();
                     fruitVeggies+=item.getFruitVeggiesContent();
@@ -643,6 +623,8 @@ public class Database{
                 addItem = true; //reset the "addItem" flag;
                 k++; //increment k;
             }
+            //the INTENT was to have this complex table determine which item to add
+            //if none of them are ideal. However I never finished this.
             int m = 0;
             for(boolean[] bool : table){
                 if(m >= options.size()){
@@ -653,7 +635,32 @@ public class Database{
                 }
                 m++;
             }
+            /*
+            In the best case, all items are removed from the list of options
+            In the worst case, NO items are remove from the list of options, which has the 
+            potential to create an infinite loop.
+           
+            Currently this if-statement checks if the the "options" list
+            is empty, and if not, it adds the food items anyways.
+
+            What should happen is
+            */
             if(options.size() > 0){
+                gMet = grains >= totalGrainNeeds;
+                pMet = protein >=totalProteinNeeds;
+                fMet = fruitVeggies >= totalFVNeeds;
+                oMet = other >= totalOtherNeeds;
+                if(!pMet){
+                    options.sort(byProtein);
+                }else if(!fMet){
+                    options.sort(byFruitVeggies);
+                }
+                else if(!oMet){
+                    options.sort(byOther);
+                }
+                else{
+                    options.sort(byWholeGrains);
+                }
                 FoodItem item = options.get(options.size()-1);
                 foodList.addFoodItem(item);
                 grains+=item.getGrainContent();
@@ -673,21 +680,12 @@ public class Database{
                     otherList.remove(item);
                 }
             }
-            /*
-            //decide what the best item is to add: the best item causes the least overflow;
-            int[][] decisionMatrix = new int[options.size()][4];
-            for(FoodItem f : options){
-                int gc = f.getGrainContent();
-                int fvc = f.getFruitVeggiesContent();
-                int pc = f.getProteinContent();
-                int oc = f.getOtherContent();
-            }
-            */
             gMet = grains >= totalGrainNeeds;
             pMet = protein >=totalProteinNeeds;
             fMet = fruitVeggies >= totalFVNeeds;
             oMet = other >= totalOtherNeeds;
-            if(gMet && pMet && fMet && oMet){needsMet = true;}
+            if(gMet && pMet && fMet && oMet)
+            {needsMet = true;}
             else{
                 boolean a = grainsList.isEmpty();
                 boolean b = proteinList.isEmpty();
@@ -702,7 +700,7 @@ public class Database{
                 System.err.println("Client needs cannot be fulfilled");
                 break;
             }
-        }
+        }//bottom of the while loop;   
         return foodList;
     }
     /**
@@ -747,20 +745,6 @@ public class Database{
             throw new IllegalArgumentException("Invalid search key argument " + key);
         }
         else return temp;
-    }
-    public int findAverageParameter(String searchKey, ArrayList<FoodItem> list) throws DatabaseException, IllegalArgumentException{
-        int key = stringToNumericKey(searchKey);
-        if(key == 1){
-            throw new IllegalArgumentException("Invalid parameter: " + key);
-        }
-        int count = list.size();
-        int total = 0;
-        for(FoodItem item : list){
-           total += item.getNumericAttribute(key);
-        }
-        double avg = total / count;
-        return (int)Math.round(avg);
-
     }
     public void optimizeHamperItems(Hamper hamper)throws DatabaseException{
         //Take a single item from the list
@@ -822,97 +806,11 @@ public class Database{
                 throw new DatabaseException("An error occurred while parsing the data");
             }
         }
-        //Find the highest-calorie item and remove it from the list
-        //repeat until under the threashold
-
-        /*
-        FoodList wholeGrains = null;
-        FoodList protein = null;
-        FoodList fruitVeggies = null;
-        FoodList other = null;
-        List<Callable<Object[]>> taskSetA = new ArrayList<Callable<Object[]>>();
-        Callable<Object[]> listMaker1 = new Callable<Object[]>(){
-            public Object[] call(){
-                Object objects[] = new Object[2];
-                objects[0] = new FoodList(grainsList);
-                objects[1] = "grains";
-                return objects;
-            }
-        };
-        Callable<Object[]> listMaker2 = new Callable<Object[]>(){
-            public Object[] call(){
-                Object objects[] = new Object[2];
-                objects[0] = new FoodList(proteinList);
-                objects[1] = "protein";
-                return objects;
-            }
-        };
-        Callable<Object[]> listMaker3 = new Callable<Object[]>(){
-            public Object[] call(){
-                Object objects[] = new Object[2];
-                objects[0] = new FoodList(fruitVeggieList);
-                objects[1] = "fruitVeggies";
-                return objects;
-            }
-        };
-        Callable<Object[]> listMaker4 = new Callable<Object[]>(){
-            public Object[] call(){
-                Object objects[] = new Object[2];
-                objects[0] = new FoodList(otherList);
-                objects[1] = "other";
-                return objects;
-            }
-        };
-        taskSetA.add(listMaker1);
-        taskSetA.add(listMaker2);
-        taskSetA.add(listMaker3);
-        taskSetA.add(listMaker4);
-        cores = Runtime.getRuntime().availableProcessors();
-        ExecutorService executorService = Executors.newFixedThreadPool(cores);
-        boolean exception2 = false;
-        List<Future<Object[]>> futures = null;
-        try{
-            futures = executorService.invokeAll(taskSetA);
-        }
-        catch(InterruptedException e){
-            e.printStackTrace();
-            exception2 = true;
-        }
-        finally{
-            executorService.shutdown();
-            if(exception2){
-                throw new DatabaseException("An error occurred while parsing the data");
-            }
-        }
-        for(Future<Object[]> future : futures){
-            try{
-                    Object[] objects = future.get();
-                    String temp = (String)objects[1];
-                    switch(temp){
-                        case "grains":
-                        wholeGrains = (FoodList)objects[0];
-                        case"fruitVeggies":
-                        fruitVeggies = (FoodList)(objects)[0];
-                        case"protein":
-                        protein = (FoodList)objects[0];
-                        case"other":
-                        other = (FoodList)objects[0];
-                    }
-            }
-            catch(InterruptedException | ExecutionException e){
-                e.printStackTrace();
-                throw new DatabaseException("An error occurred while handling the parallel proccessed food list");
-            }
-        }
-        */
-    
-        
         int gNeeds = 0;
         int fvNeeds = 0;
         int pNeeds = 0;
         int oNeeds = 0;
         int calNeeds = 0;
-
         for(Client c : hamper.getClients()){
             gNeeds += c.getGrains()*7;
             fvNeeds+= c.getFruitVeggies()*7;
@@ -920,11 +818,6 @@ public class Database{
             oNeeds += c.getOther()*7;
             calNeeds+=c.getCalories()*7;
         };
-        final int limitGCOverflow = 1000;
-        final int limitFVCOverflow = 1000;
-        final int limitPCOverflow = 2000;
-        final int limitOCOverflow = 1000;
-
         int grainCals = foodList.getGrainContent();
         int fvCals = foodList.getFruitVeggiesContent();
         int proteinCals = foodList.getProteinContent();
@@ -936,7 +829,6 @@ public class Database{
         proteinCals = foodList.getProteinContent();
         otherCals = foodList.getOtherContent();
         int max = 0;
-
         for(int i : array){
             if(max < i){
                 max = i;
@@ -958,7 +850,7 @@ public class Database{
                 if(maxItem.compareTo(item) < 0){maxItem = item;}
             }
             foodList.removeFoodItem(maxItem);
-            //go fish;
+
 
         }else if(max == fvCals){
             for(FoodItem item: grainsList){
@@ -979,8 +871,12 @@ public class Database{
             foodList.removeFoodItem(maxItem);  
             //go fish
         }
+        //Eventually:
+        //when the sum of n items brings the hamper under a certain threashold, 
+        //then we break.
+        //TO TRIM DOWN::
+        //FIND Items that are over the limit
     }
-
     public Hamper createHamper(ArrayList<Client> clients)throws SQLException, DatabaseException{
         FoodList foodList = createHamperFoodList(clients);
         Hamper hamper = new Hamper(clients,foodList);
@@ -988,7 +884,8 @@ public class Database{
         for(FoodItem item: ptr){
             removeFromInventory(item,false);
         }
-        optimizeHamperItems(hamper);
+        System.out.println(String.format("%-10s %-10d", "Remaining Items:", inventory.getTotalItems()));
+        //optimizeHamperItems(hamper);
         return hamper;
     }
     public Hamper createHamper(ArrayList<Client> clients, ArrayList<FoodItem> foodList)throws SQLException, DatabaseException{

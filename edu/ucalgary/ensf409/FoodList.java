@@ -1,7 +1,5 @@
 package edu.ucalgary.ensf409;
 import java.util.*;
-
-import javax.lang.model.util.Elements.Origin;
 /**
  * A class of the package {@code edu.ucalgary.ensf409} 
  * that holds {@code FoodItem} objects in an {@code ArrayList} data structure.
@@ -30,10 +28,6 @@ public class FoodList{
     }
     public FoodList(ArrayList<FoodItem> foodItems){
         this.foodItems = foodItems;
-        updateAllFields();
-    }
-    private void updateAllFields(){
-        //Multithreadable task
         Iterator<FoodItem> iterator = foodItems.iterator();
         this.calorieContent = 0;
         this.fruitVeggieContent = 0;
@@ -55,7 +49,20 @@ public class FoodList{
     }
     public void setFoodList(ArrayList<FoodItem> foodList){
         this.foodItems = foodList;
-        updateAllFields();
+        Iterator<FoodItem> iterator = foodItems.iterator();
+        this.calorieContent = 0;
+        this.fruitVeggieContent = 0;
+        this.otherContent = 0;
+        this.proteinContent = 0;
+        this.wholeGrainsContent = 0;
+        while(iterator.hasNext()){ 
+            FoodItem temp = iterator.next(); 
+            this.calorieContent += temp.getCalories();
+            this.fruitVeggieContent +=temp.getFruitVeggiesContent();
+            this.proteinContent += temp.getProteinContent();
+            this.wholeGrainsContent +=temp.getGrainContent();
+            this.otherContent +=temp.getOtherContent();
+        }
     }
     public FoodItem getFoodItem(int index){
         return this.foodItems.get(index);
@@ -69,7 +76,11 @@ public class FoodList{
      */
     public boolean removeFoodItem(FoodItem item){
         if(foodItems.remove(item)){
-            updateAllFields();
+            this.calorieContent -= item.getCalories();
+            this.wholeGrainsContent -= item.getGrainContent();
+            this.fruitVeggieContent -= item.getFruitVeggiesContent();
+            this.proteinContent -= item.getProteinContent();
+            this.otherContent -= item.getOtherContent();
             return true;
         }else{
             return false;
@@ -88,11 +99,15 @@ public class FoodList{
     public void replaceFoodItem(FoodItem original, FoodItem substitute){
         int index = foodItems.indexOf(original);
         replaceFoodItem(index, substitute);
-        updateAllFields();
     }
     public void addFoodItem(FoodItem foodItem){
         foodItems.add(foodItem);
-        updateAllFields();
+        this.calorieContent += foodItem.getCalories();
+        this.fruitVeggieContent +=foodItem.getFruitVeggiesContent();
+        this.proteinContent += foodItem.getProteinContent();
+        this.wholeGrainsContent +=foodItem.getGrainContent();
+        this.otherContent +=foodItem.getOtherContent();
+
     }
     public int getTotalCalories(){
         return this.calorieContent;
