@@ -39,6 +39,8 @@ public class OrderForm implements ActionListener
 
         clientNeedsSetup();
 
+        orderListSetup();
+
         tabs.add(orderPage, "Orderform");
         tabs.add(clientNeeds, "Individual Needs");
         tabs.add(foodInventory, "Inventory");
@@ -63,21 +65,24 @@ public class OrderForm implements ActionListener
         gbc.gridx = 0;
         gbc.gridy = 0;
         clientDataButton.addActionListener(this);
+        clientDataButton.setPreferredSize(new Dimension(120, 25));
         orderPage.add(clientDataButton, gbc);
 
         gbc.gridx = 1;
         gbc.gridy = 0;
+        databaseButton.setPreferredSize(new Dimension(120, 25));
         databaseButton.addActionListener(this);
         orderPage.add(databaseButton, gbc);
 
         gbc.gridx = 2;
         gbc.gridy = 0;
+        orderListButton.setPreferredSize(new Dimension(120, 25));
         orderListButton.addActionListener(this);
         orderPage.add(orderListButton, gbc);
 
         gbc.ipady = 20;
         gbc.anchor = GridBagConstraints.CENTER; 
-        gbc.insets = new Insets(100, 30, 15, 30);
+        gbc.insets = new Insets(100, 15, 15, 15);
         gbc.gridwidth = 3;
         gbc.gridx = 0;
         gbc.gridy = 1;
@@ -86,9 +91,12 @@ public class OrderForm implements ActionListener
 
         gbc.ipady = 10;
         gbc.anchor = GridBagConstraints.SOUTH; 
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(80, 15, 15, 15);
         gbc.gridwidth = 1;
         gbc.gridx = 2;      
         gbc.gridy = 2;       
+        printOrderButton.setPreferredSize(new Dimension(120, 32));
         printOrderButton.addActionListener(this);
         orderPage.add(printOrderButton, gbc);
     }
@@ -169,6 +177,12 @@ public class OrderForm implements ActionListener
         gbc.gridx = 0;
         gbc.gridy = 1;
         clientNeeds.add(client, gbc);
+    }
+
+    public void orderListSetup()
+    {
+        JTabbedPane orders = new JTabbedPane();
+        orderPage.add(orders);
     }
 
     public void actionPerformed(ActionEvent e)

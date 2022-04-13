@@ -66,7 +66,7 @@ public class HamperForm implements ActionListener
         gbc.ipady = 10;    
         gbc.anchor = GridBagConstraints.SOUTH; 
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(100, 5, 5, 15);
+        gbc.insets = new Insets(100, 30, 5, 15);
         gbc.gridheight = 1;
         gbc.gridwidth = 2;
         gbc.gridx = 0;      
@@ -76,7 +76,7 @@ public class HamperForm implements ActionListener
         gbc.ipady = 10;    
         gbc.anchor = GridBagConstraints.SOUTH; 
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(100, 5, 5, 5);
+        gbc.insets = new Insets(100, 5, 5, 30);
         gbc.gridheight = 1;
         gbc.gridwidth = 2;
         gbc.gridx = 2;      
@@ -88,7 +88,7 @@ public class HamperForm implements ActionListener
         gbc.ipady = 10;      
         gbc.anchor = GridBagConstraints.SOUTH; 
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(5, 5, 5, 15);
+        gbc.insets = new Insets(5, 30, 5, 15);
         gbc.gridheight = 1;
         gbc.gridwidth = 2;
         gbc.gridx = 0;      
@@ -98,7 +98,7 @@ public class HamperForm implements ActionListener
         gbc.ipady = 10;       
         gbc.anchor = GridBagConstraints.SOUTH; 
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(5, 5, 5, 30);
         gbc.gridheight = 1;
         gbc.gridwidth = 2;
         gbc.gridx = 2;      
@@ -110,7 +110,7 @@ public class HamperForm implements ActionListener
         gbc.ipady = 10;      
         gbc.anchor = GridBagConstraints.SOUTH; 
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(5, 5, 5, 15);
+        gbc.insets = new Insets(5, 30, 5, 15);
         gbc.gridheight = 1;
         gbc.gridwidth = 2;
         gbc.gridx = 0;      
@@ -120,7 +120,7 @@ public class HamperForm implements ActionListener
         gbc.ipady = 10;        
         gbc.anchor = GridBagConstraints.SOUTH; 
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(5, 5, 5, 30);
         gbc.gridheight = 1;
         gbc.gridwidth = 2;
         gbc.gridx = 2;      
@@ -132,7 +132,7 @@ public class HamperForm implements ActionListener
         gbc.ipady = 10;
         gbc.anchor = GridBagConstraints.SOUTH; 
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(5, 5, 5, 15);
+        gbc.insets = new Insets(5, 30, 5, 15);
         gbc.gridheight = 1;
         gbc.gridwidth = 2;
         gbc.gridx = 0;      
@@ -142,7 +142,7 @@ public class HamperForm implements ActionListener
         gbc.ipady = 10;     
         gbc.anchor = GridBagConstraints.SOUTH; 
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(5, 5, 5, 30);
         gbc.gridheight = 1;
         gbc.gridwidth = 2;
         gbc.gridx = 2;      
@@ -152,7 +152,7 @@ public class HamperForm implements ActionListener
         gbc.ipady = 10;     
         gbc.anchor = GridBagConstraints.SOUTH; 
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(100, 5, 5, 5);
+        gbc.insets = new Insets(100, 5, 30, 30);
         gbc.gridheight = 1;
         gbc.gridwidth = 1;
         gbc.gridx = 3;      
