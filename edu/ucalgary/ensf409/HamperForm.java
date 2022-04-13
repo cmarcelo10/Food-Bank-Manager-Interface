@@ -51,7 +51,7 @@ public class HamperForm implements ActionListener
         title.setText("Orderform");
         title.setHorizontalAlignment(JLabel.CENTER);
         title.setFont(title.getFont().deriveFont(20f));
-        gbc.ipady = 10;       //reset to default   
+        gbc.ipady = 10;     
         gbc.anchor = GridBagConstraints.CENTER; 
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(5, 5, 5, 5);
@@ -63,7 +63,7 @@ public class HamperForm implements ActionListener
 
         c1Label.setText("# of Adult Males: ");
         c1Label.setFont(c1Label.getFont().deriveFont(14f));
-        gbc.ipady = 10;       //reset to default   
+        gbc.ipady = 10;    
         gbc.anchor = GridBagConstraints.SOUTH; 
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(100, 5, 5, 15);
@@ -73,7 +73,7 @@ public class HamperForm implements ActionListener
         gbc.gridy = 1;         
         orderForm.add(c1Label, gbc);
 
-        gbc.ipady = 10;       //reset to default   
+        gbc.ipady = 10;    
         gbc.anchor = GridBagConstraints.SOUTH; 
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(100, 5, 5, 5);
@@ -85,7 +85,7 @@ public class HamperForm implements ActionListener
 
         c2Label.setText("# of Adult Females: ");
         c2Label.setFont(c2Label.getFont().deriveFont(14f));
-        gbc.ipady = 10;       //reset to default   
+        gbc.ipady = 10;      
         gbc.anchor = GridBagConstraints.SOUTH; 
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(5, 5, 5, 15);
@@ -95,7 +95,7 @@ public class HamperForm implements ActionListener
         gbc.gridy = 2;      
         orderForm.add(c2Label, gbc);
 
-        gbc.ipady = 10;       //reset to default   
+        gbc.ipady = 10;       
         gbc.anchor = GridBagConstraints.SOUTH; 
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(5, 5, 5, 5);
@@ -107,7 +107,7 @@ public class HamperForm implements ActionListener
 
         c3Label.setText("# of Children over 8: ");
         c3Label.setFont(c3Label.getFont().deriveFont(14f));
-        gbc.ipady = 10;       //reset to default   
+        gbc.ipady = 10;      
         gbc.anchor = GridBagConstraints.SOUTH; 
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(5, 5, 5, 15);
@@ -117,7 +117,7 @@ public class HamperForm implements ActionListener
         gbc.gridy = 3;      
         orderForm.add(c3Label, gbc);
 
-        gbc.ipady = 10;       //reset to default   
+        gbc.ipady = 10;        
         gbc.anchor = GridBagConstraints.SOUTH; 
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(5, 5, 5, 5);
@@ -129,7 +129,7 @@ public class HamperForm implements ActionListener
 
         c4Label.setText("# of Children under 8: ");
         c4Label.setFont(c4Label.getFont().deriveFont(14f));
-        gbc.ipady = 10;       //reset to default   
+        gbc.ipady = 10;
         gbc.anchor = GridBagConstraints.SOUTH; 
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(5, 5, 5, 15);
@@ -139,7 +139,7 @@ public class HamperForm implements ActionListener
         gbc.gridy = 4;        
         orderForm.add(c4Label, gbc);
 
-        gbc.ipady = 10;       //reset to default   
+        gbc.ipady = 10;     
         gbc.anchor = GridBagConstraints.SOUTH; 
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(5, 5, 5, 5);
@@ -149,9 +149,9 @@ public class HamperForm implements ActionListener
         gbc.gridy = 4;       
         orderForm.add(client4, gbc);
 
-        gbc.ipady = 10;       //reset to default   
+        gbc.ipady = 10;     
         gbc.anchor = GridBagConstraints.SOUTH; 
-        gbc.fill = GridBagConstraints.NONE;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(100, 5, 5, 5);
         gbc.gridheight = 1;
         gbc.gridwidth = 1;
