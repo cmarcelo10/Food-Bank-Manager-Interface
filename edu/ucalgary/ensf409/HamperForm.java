@@ -1,7 +1,10 @@
 package edu.ucalgary.ensf409;
 import javax.swing.*;
+import javax.swing.JSpinner.DefaultEditor;
+
 import java.awt.*;
-import java.awt.event.*;  
+import java.awt.event.*;
+import java.security.spec.ECFieldF2m;  
 
 public class HamperForm implements ActionListener
 {
@@ -9,23 +12,37 @@ public class HamperForm implements ActionListener
     {
         new HamperForm();
     }
-
+    boolean invalidState = false;
     JFrame frame = new JFrame("Food Bank Orderform");
     JPanel orderForm = new JPanel(new GridBagLayout());
     GridBagConstraints gbc = new GridBagConstraints();
     JLabel title = new JLabel();
     JLabel c1Label = new JLabel();
-    JTextField client1 = new JTextField(2);
+    //JTextField client1 = new JTextField(2);
     JLabel c2Label = new JLabel();
-    JTextField client2 = new JTextField(2);
+   // JTextField client2 = new JTextField(2);
     JLabel c3Label = new JLabel();
-    JTextField client3 = new JTextField(2);
+   // JTextField client3 = new JTextField(2);
     JLabel c4Label = new JLabel();
-    JTextField client4 = new JTextField(2);
+    //JTextField client4 = new JTextField(2);
+    SpinnerNumberModel client1S = new SpinnerNumberModel(0,0,5,1);
+    SpinnerNumberModel client2S = new SpinnerNumberModel(0,0,5,1);
+    SpinnerNumberModel client3S = new SpinnerNumberModel(0,0,5,1);
+    SpinnerNumberModel client4S = new SpinnerNumberModel(0,0,5,1);
+    JSpinner client1 = new JSpinner(client1S);
+    JSpinner client2 = new JSpinner(client2S);
+    JSpinner client3 = new JSpinner(client3S);
+    JSpinner client4 = new JSpinner(client4S);
+
     JButton enterOrderButton = new JButton("Enter");
 
     public HamperForm()
     {
+        ((DefaultEditor) client1.getEditor()).getTextField().setEditable(false);
+        ((DefaultEditor) client2.getEditor()).getTextField().setEditable(false);
+        ((DefaultEditor) client3.getEditor()).getTextField().setEditable(false);
+        ((DefaultEditor) client4.getEditor()).getTextField().setEditable(false);
+
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         gbc.weightx = 1;
@@ -151,14 +168,33 @@ public class HamperForm implements ActionListener
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) 
+    public void actionPerformed(ActionEvent e)
     {
-        String c1 = client1.getText();  
-        String c2 = client2.getText();  
-        String c3 = client3.getText();  
-        String c4 = client4.getText();
-        System.out.println(c1 + ", " + c2 + ", " + c3 + ", " + c4);
-        frame.dispose();
-        //Send to order function 
+        int c1 = (Integer)client1.getValue();
+        int c2 = (Integer)client2.getValue();
+        int c3 = (Integer)client3.getValue();
+        int c4 = (Integer)client4.getValue();
+        String url = "jdbc:mysql://localhost:3306/food_inventory";
+        String user = "root";
+        String password = "password";
+        Database database = null;
+        try{
+            database = new Database(url, user, password);
+            database.createClients(c1, c2, c3, c4);
+            Hamper hamper = database.createHamper(database.createClients(c1, c2, c3, c4));
+            if(hamper == null){
+                invalidState = true;
+                frame.dispose();
+                new HamperForm();
+            }
+        }catch(Exception exception){
+            invalidState = true;
+            new HamperForm();
+            invalidState = false;
+            System.out.println("Exception!");
+        }
+        finally{
+            frame.dispose();
+        }
     }
 }

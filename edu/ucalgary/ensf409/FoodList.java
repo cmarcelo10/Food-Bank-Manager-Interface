@@ -55,6 +55,7 @@ public class FoodList{
         this.otherContent = 0;
         this.proteinContent = 0;
         this.wholeGrainsContent = 0;
+
         while(iterator.hasNext()){ 
             FoodItem temp = iterator.next(); 
             this.calorieContent += temp.getCalories();
@@ -108,6 +109,17 @@ public class FoodList{
         this.wholeGrainsContent +=foodItem.getGrainContent();
         this.otherContent +=foodItem.getOtherContent();
 
+    }
+    public void merge(FoodList list){
+        ArrayList<FoodItem> appendedItems = list.toArrayList();
+        for(FoodItem foodItem : appendedItems){
+            foodItems.add(foodItem);
+            this.calorieContent += foodItem.getCalories();
+            this.fruitVeggieContent +=foodItem.getFruitVeggiesContent();
+            this.proteinContent += foodItem.getProteinContent();
+            this.wholeGrainsContent +=foodItem.getGrainContent();
+            this.otherContent +=foodItem.getOtherContent();
+        }
     }
     public int getTotalCalories(){
         return this.calorieContent;

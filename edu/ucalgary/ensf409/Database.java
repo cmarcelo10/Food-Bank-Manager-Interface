@@ -15,6 +15,7 @@ public class Database{
     private String password;
     private Connection dbConnect;
     private volatile FoodList inventory;
+    public final HashMap<Integer,String> lookupTable = new HashMap<>();
     protected Comparator<FoodItem> byProtein 
     = Comparator.comparing((item -> item.getProteinContent()));
     protected Comparator<FoodItem> byWholeGrains
@@ -67,7 +68,8 @@ public class Database{
         Client client = new Client(clientID, clientType, grains, protein, fruitVeggies, other, calories);
         return client;
     }
-    public FoodList getAvailableFoodList(){
+    public FoodList getAvailableFoodList() throws SQLException{
+        updateAvailableFood();
         return this.inventory;
     }
     /**
@@ -386,13 +388,17 @@ public class Database{
      * It can infintely loop if there are insufficient items available
      * Lines 560 - 563 inclusively hold the adjustment parameters for overflow limits on each 
      * nutrient type;
-     * TODO: FIX INFINITE LOOP IF INSUFFICIENT ITEMS;
+
      * @param clients
      * @return the least waste
      * @throws DatabaseException
      * @throws SQLException
      */
-    public FoodList createHamperFoodList(ArrayList<Client> clients) throws DatabaseException, SQLException{
+    public synchronized FoodList createHamperFoodList(ArrayList<Client> clients) throws DatabaseException{
+        if(clients.isEmpty()){
+            System.err.println("Clients list cannot be empty");
+            return null;
+        }
         Iterator<Client> iterator = clients.iterator();
         int totalGrainNeeds = 0;
         int totalFVNeeds = 0;
@@ -413,6 +419,15 @@ public class Database{
         totalFVNeeds = totalFVNeeds*7;
         totalOtherNeeds = totalOtherNeeds*7;
         totalCalories = totalCalories*7;
+        boolean validGrainsNeeds = totalGrainNeeds < inventory.getGrainContent();
+        boolean validProteinNeeds = totalProteinNeeds < inventory.getProteinContent();
+        boolean validFruitVeggiesNeeds = totalFVNeeds < inventory.getFruitVeggiesContent();
+        boolean validOtherNeeds = totalOtherNeeds < inventory.getOtherContent();
+        boolean validCalorieNeeds = totalCalories < inventory.getTotalCalories();
+        if(!validCalorieNeeds || !validGrainsNeeds || !validFruitVeggiesNeeds || !validProteinNeeds ||!validOtherNeeds){
+            System.err.println("Clients' needs cannot possibly be fulfilled");
+            return null;
+        }
         int grains=0; int fruitVeggies=0; 
         int protein=0; int other=0; int calories = 0;
         boolean needsMet = false; boolean gMet = false;
@@ -427,11 +442,18 @@ public class Database{
         ArrayList<FoodItem> proteinList = new ArrayList<FoodItem>();
         ArrayList<FoodItem> fruitVeggieList = new ArrayList<FoodItem>();
         ArrayList<FoodItem> otherList = new ArrayList<FoodItem>();
-        Object[] availableFoodItems = inventory.toArrayList().toArray();
+        int q1 = Math.round((inventory.toArrayList().size())/4);
+        int q2 = Math.round((inventory.toArrayList().size())/2);
+        int q3 = Math.round(3*(inventory.toArrayList().size())/4);
+        int q4 = inventory.toArrayList().size();
+        Object[] availableFoodItems = inventory.toArrayList().subList(0,q1).toArray();
+        Object[] availableFoodItems2 = inventory.toArrayList().subList(q1,q2).toArray();
+        Object[] availableFoodItems3 = inventory.toArrayList().subList(q2,q3).toArray();
+        Object[] availableFoodItems4 = inventory.toArrayList().subList(q3,q4).toArray();
         List<Callable<Void>> callables = new ArrayList<Callable<Void>>();
-        for(Object foodItem : availableFoodItems){
-            Callable<Void> grouper = new Callable<Void>(){
-                public Void call(){
+        Callable<Void> subsort1 = new Callable<Void>(){
+            public Void call(){
+                for(Object foodItem : availableFoodItems){
                     int g = ((FoodItem)foodItem).getGrainContent();
                     int fv =((FoodItem)foodItem).getFruitVeggiesContent();
                     int pro = ((FoodItem)foodItem).getProteinContent();
@@ -456,17 +478,112 @@ public class Database{
                     else{
                         otherList.add((FoodItem)foodItem);
                     }
-                    return null;
-                };
-            };
-            callables.add(grouper);
-        }
+                }
+                return null;
+            }
+        };
+        callables.add(subsort1);
+        Callable<Void> subsort2 = new Callable<Void>(){
+            public Void call(){
+                for(Object foodItem : availableFoodItems2){
+                    int g = ((FoodItem)foodItem).getGrainContent();
+                    int fv =((FoodItem)foodItem).getFruitVeggiesContent();
+                    int pro = ((FoodItem)foodItem).getProteinContent();
+                    int ot = ((FoodItem)foodItem).getOtherContent();
+                    int[] a = {g,fv,pro,ot};
+                    int max = 0;
+                    for(int x = 0; x < 4; x++){
+                        if(a[x] > max){
+                            max = a[x];
+                        }
+                    }
+                    if(max == g){
+                        grainsList.add((FoodItem)foodItem);
+                    }
+                    else if(max == fv){
+                        fruitVeggieList.add((FoodItem)foodItem);
+        
+                    }
+                    else if(max == pro){
+                        proteinList.add((FoodItem)foodItem);
+                    }
+                    else{
+                        otherList.add((FoodItem)foodItem);
+                    }
+                }
+                return null;
+            }
+        };
+        callables.add(subsort2);
+        Callable<Void> subsort3 = new Callable<Void>(){
+            public Void call(){
+                for(Object foodItem : availableFoodItems3){
+                    int g = ((FoodItem)foodItem).getGrainContent();
+                    int fv =((FoodItem)foodItem).getFruitVeggiesContent();
+                    int pro = ((FoodItem)foodItem).getProteinContent();
+                    int ot = ((FoodItem)foodItem).getOtherContent();
+                    int[] a = {g,fv,pro,ot};
+                    int max = 0;
+                    for(int x = 0; x < 4; x++){
+                        if(a[x] > max){
+                            max = a[x];
+                        }
+                    }
+                    if(max == g){
+                        grainsList.add((FoodItem)foodItem);
+                    }
+                    else if(max == fv){
+                        fruitVeggieList.add((FoodItem)foodItem);
+        
+                    }
+                    else if(max == pro){
+                        proteinList.add((FoodItem)foodItem);
+                    }
+                    else{
+                        otherList.add((FoodItem)foodItem);
+                    }
+                }
+                return null;
+            }
+        };
+        callables.add(subsort3);
+        Callable<Void> subsort4 = new Callable<Void>(){
+            public Void call(){
+                for(Object foodItem : availableFoodItems4){
+                    int g = ((FoodItem)foodItem).getGrainContent();
+                    int fv =((FoodItem)foodItem).getFruitVeggiesContent();
+                    int pro = ((FoodItem)foodItem).getProteinContent();
+                    int ot = ((FoodItem)foodItem).getOtherContent();
+                    int[] a = {g,fv,pro,ot};
+                    int max = 0;
+                    for(int x = 0; x < 4; x++){
+                        if(a[x] > max){
+                            max = a[x];
+                        }
+                    }
+                    if(max == g){
+                        grainsList.add((FoodItem)foodItem);
+                    }
+                    else if(max == fv){
+                        fruitVeggieList.add((FoodItem)foodItem);
+        
+                    }
+                    else if(max == pro){
+                        proteinList.add((FoodItem)foodItem);
+                    }
+                    else{
+                        otherList.add((FoodItem)foodItem);
+                    }
+                }
+                return null;
+            }
+        };
+        callables.add(subsort4);
         boolean exception1 = false;
         int cores = Runtime.getRuntime().availableProcessors();
         ExecutorService executor1 = Executors.newFixedThreadPool(cores);
         try{
             executor1.invokeAll(callables);
-
         }
         catch(InterruptedException e){
             e.printStackTrace();
@@ -474,15 +591,16 @@ public class Database{
         }
         finally{
             executor1.shutdown();
+            try{
+                executor1.awaitTermination(Integer.MAX_VALUE, TimeUnit.MICROSECONDS);
+            }catch(InterruptedException e){exception1 = true;}
             if(exception1){
                 throw new DatabaseException("An error occurred while parsing the data");
             }
         }
-
-            //Concurrency = doing two different things at the same time
-            //Parallelism = doing the same thing multiple times concurrently
         int cpus = Runtime.getRuntime().availableProcessors();
         ExecutorService executor = Executors.newFixedThreadPool(cpus);
+        callables = null;
         callables = new ArrayList<Callable<Void>>();
         callables.add(new Callable<Void>(){public Void call(){proteinList.sort(byProtein); return null;}});
         callables.add(new Callable<Void>(){public Void call(){grainsList.sort(byWholeGrains); return null;}});
@@ -495,15 +613,21 @@ public class Database{
             exceptionCaught = true;
         }finally{
             executor.shutdown();
+            try{
+                executor.awaitTermination(Integer.MAX_VALUE, TimeUnit.MICROSECONDS);
+            }catch(InterruptedException e){
+                throw new DatabaseException("an unknown error occured while handling the request");
+            }
             if(exceptionCaught){
                 throw new DatabaseException("an unknown error occured while handling the request");
             }
         }
         //brute-force find food items that fill the needs gap
-
         //TODO: add a "worst-case" mode that attempts to brute force the hamper if the needs cannot be met.
         cpus = Runtime.getRuntime().availableProcessors();
-        while(!needsMet){ //TOP of the loop :)
+        int failSafe = 0;
+        while(!needsMet && failSafe < Integer.MAX_VALUE){ //TOP of the loop :)
+            failSafe++;
             ExecutorService taskPool = Executors.newFixedThreadPool(cpus);
             List<Parser> tasks = new ArrayList<Parser>();
             if(grains < totalGrainNeeds && grainsList.isEmpty() == false){
@@ -526,6 +650,11 @@ public class Database{
                 exceptionCaught = true;
             }finally{
                 taskPool.shutdown();
+                try{
+                    taskPool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+                }catch(InterruptedException e){
+                    throw new DatabaseException("an unknown error occured while handling the request");
+                }
                 if(exceptionCaught){
                     throw new DatabaseException("an unknown error occured while handling the request");
                 }
@@ -655,7 +784,7 @@ public class Database{
                 }else if(!fMet){
                     options.sort(byFruitVeggies);
                 }
-                else if(!oMet){
+                else if(!gMet){
                     options.sort(byOther);
                 }
                 else{
@@ -746,7 +875,7 @@ public class Database{
         }
         else return temp;
     }
-    public void optimizeHamperItems(Hamper hamper)throws DatabaseException{
+    public void optimizeHamperItems2(Hamper hamper)throws DatabaseException{
         //Take a single item from the list
         //Compare it to two other items in the inventory
         //Item 1 + Item 2 should be able to replace the existing item
@@ -756,11 +885,18 @@ public class Database{
         ArrayList<FoodItem> proteinList = new ArrayList<FoodItem>();
         ArrayList<FoodItem> fruitVeggieList = new ArrayList<FoodItem>();
         ArrayList<FoodItem> otherList = new ArrayList<FoodItem>();
-        Object[] availableFoodItems = foodList.toArrayList().toArray();
-        List<Callable<Void>> callables = new ArrayList<Callable<Void>>();
-        for(Object foodItem : availableFoodItems){
-            Callable<Void> grouper = new Callable<Void>(){
-                public Void call(){
+        int q1 = Math.round((foodList.toArrayList().size())/4);
+        int q2 = Math.round((foodList.toArrayList().size())/2);
+        int q3 = Math.round(3*(foodList.toArrayList().size())/4);
+        int q4 = foodList.toArrayList().size();
+        Object[] availableFoodItems = foodList.toArrayList().subList(0,q1).toArray();
+        Object[] availableFoodItems2 = foodList.toArrayList().subList(q1,q2).toArray();
+        Object[] availableFoodItems3 = foodList.toArrayList().subList(q2,q3).toArray();
+        Object[] availableFoodItems4 = foodList.toArrayList().subList(q3,q4).toArray();
+        List<Callable<Void>> callables = new ArrayList<>();
+        Callable<Void> subsort1 = new Callable<Void>(){
+            public Void call(){
+                for(Object foodItem : availableFoodItems){
                     int g = ((FoodItem)foodItem).getGrainContent();
                     int fv =((FoodItem)foodItem).getFruitVeggiesContent();
                     int pro = ((FoodItem)foodItem).getProteinContent();
@@ -785,11 +921,107 @@ public class Database{
                     else{
                         otherList.add((FoodItem)foodItem);
                     }
-                    return null;
-                };
-            };
-            callables.add(grouper);
-        }
+                }
+                return null;
+            }
+        };
+        callables.add(subsort1);
+        Callable<Void> subsort2 = new Callable<Void>(){
+            public Void call(){
+                for(Object foodItem : availableFoodItems2){
+                    int g = ((FoodItem)foodItem).getGrainContent();
+                    int fv =((FoodItem)foodItem).getFruitVeggiesContent();
+                    int pro = ((FoodItem)foodItem).getProteinContent();
+                    int ot = ((FoodItem)foodItem).getOtherContent();
+                    int[] a = {g,fv,pro,ot};
+                    int max = 0;
+                    for(int x = 0; x < 4; x++){
+                        if(a[x] > max){
+                            max = a[x];
+                        }
+                    }
+                    if(max == g){
+                        grainsList.add((FoodItem)foodItem);
+                    }
+                    else if(max == fv){
+                        fruitVeggieList.add((FoodItem)foodItem);
+        
+                    }
+                    else if(max == pro){
+                        proteinList.add((FoodItem)foodItem);
+                    }
+                    else{
+                        otherList.add((FoodItem)foodItem);
+                    }
+                }
+                return null;
+            }
+        };
+        callables.add(subsort2);
+        Callable<Void> subsort3 = new Callable<Void>(){
+            public Void call(){
+                for(Object foodItem : availableFoodItems3){
+                    int g = ((FoodItem)foodItem).getGrainContent();
+                    int fv =((FoodItem)foodItem).getFruitVeggiesContent();
+                    int pro = ((FoodItem)foodItem).getProteinContent();
+                    int ot = ((FoodItem)foodItem).getOtherContent();
+                    int[] a = {g,fv,pro,ot};
+                    int max = 0;
+                    for(int x = 0; x < 4; x++){
+                        if(a[x] > max){
+                            max = a[x];
+                        }
+                    }
+                    if(max == g){
+                        grainsList.add((FoodItem)foodItem);
+                    }
+                    else if(max == fv){
+                        fruitVeggieList.add((FoodItem)foodItem);
+        
+                    }
+                    else if(max == pro){
+                        proteinList.add((FoodItem)foodItem);
+                    }
+                    else{
+                        otherList.add((FoodItem)foodItem);
+                    }
+                }
+                return null;
+            }
+        };
+        callables.add(subsort3);
+        Callable<Void> subsort4 = new Callable<Void>(){
+            public Void call(){
+                for(Object foodItem : availableFoodItems4){
+                    int g = ((FoodItem)foodItem).getGrainContent();
+                    int fv =((FoodItem)foodItem).getFruitVeggiesContent();
+                    int pro = ((FoodItem)foodItem).getProteinContent();
+                    int ot = ((FoodItem)foodItem).getOtherContent();
+                    int[] a = {g,fv,pro,ot};
+                    int max = 0;
+                    for(int x = 0; x < 4; x++){
+                        if(a[x] > max){
+                            max = a[x];
+                        }
+                    }
+                    if(max == g){
+                        grainsList.add((FoodItem)foodItem);
+                    }
+                    else if(max == fv){
+                        fruitVeggieList.add((FoodItem)foodItem);
+        
+                    }
+                    else if(max == pro){
+                        proteinList.add((FoodItem)foodItem);
+                    }
+                    else{
+                        otherList.add((FoodItem)foodItem);
+                    }
+                }
+                return null;
+            }
+        };
+        callables.add(subsort4);
         boolean exception1 = false;
         int cores = Runtime.getRuntime().availableProcessors();
         ExecutorService executor1 = Executors.newFixedThreadPool(cores);
@@ -802,6 +1034,12 @@ public class Database{
         }
         finally{
             executor1.shutdown();
+            try{
+                executor1.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            }catch(InterruptedException e){
+                e.printStackTrace();
+                exception1 = true;
+            }
             if(exception1){
                 throw new DatabaseException("An error occurred while parsing the data");
             }
@@ -839,9 +1077,8 @@ public class Database{
         int proOverflow = foodList.getProteinContent() - pNeeds;
         int otherOverflow = foodList.getOtherContent() - oNeeds;
         int calorieOverlow = foodList.getTotalCalories() - calNeeds;
-
         FoodItem maxItem = new FoodItem(0,"none",0,0,0,0,0); //a dummy item.
-        grainsList.sort(byCalorie);
+        grainsList.sort(byWholeGrains);
         proteinList.sort(byCalorie);
         fruitVeggieList.sort(byCalorie);
         otherList.sort(byCalorie);
@@ -850,8 +1087,6 @@ public class Database{
                 if(maxItem.compareTo(item) < 0){maxItem = item;}
             }
             foodList.removeFoodItem(maxItem);
-
-
         }else if(max == fvCals){
             for(FoodItem item: grainsList){
                 if(maxItem.compareTo(item) < 0){maxItem = item;}
@@ -871,21 +1106,54 @@ public class Database{
             foodList.removeFoodItem(maxItem);  
             //go fish
         }
-        //Eventually:
+        hamper.setFoodList(foodList);
+        grainOverflow = foodList.getGrainContent() - gNeeds;
+        fvOverflow = foodList.getFruitVeggiesContent() - fvNeeds;
+        proOverflow = foodList.getProteinContent() - pNeeds;
+        otherOverflow = foodList.getOtherContent() - oNeeds;
+        calorieOverlow = foodList.getTotalCalories() - calNeeds;
+        ArrayList<FoodItem> availFood = inventory.toArrayList();
+        for(FoodItem item : availFood){
+
+        }
+
+
         //when the sum of n items brings the hamper under a certain threashold, 
         //then we break.
         //TO TRIM DOWN::
         //FIND Items that are over the limit
     }
+    //public ArrayList<Client> createClients
+
+    public void optimize(Hamper hamper){
+
+    }
     public Hamper createHamper(ArrayList<Client> clients)throws SQLException, DatabaseException{
-        FoodList foodList = createHamperFoodList(clients);
+        FoodList foodList = new FoodList();
+        ArrayList<FoodList> listOfLists = new ArrayList<>();
+        if(clients.size() > 12){
+            System.err.println("Too many clients specified at once");
+            return null;
+        }
+        else if(clients.isEmpty()){
+            System.err.println("Clients list cannot be empty");
+            return null;
+        }
+        else if(clients.size() > 5){
+            ArrayList<Client> sublist = new ArrayList<Client>(clients.subList(0,(clients.size()/2)));
+            ArrayList<Client> sublist2 = new ArrayList<Client>(clients.subList((clients.size()/2),clients.size()));
+            foodList.merge(createHamperFoodList(sublist));
+            foodList.merge(createHamperFoodList(sublist2));
+        }else{
+            foodList = createHamperFoodList(clients);
+        }
         Hamper hamper = new Hamper(clients,foodList);
         var ptr = foodList.toArrayList();
         for(FoodItem item: ptr){
-            removeFromInventory(item,false);
+            removeFromInventory(item,false); // TODO: reset to 'true' prior to submision
         }
-        System.out.println(String.format("%-10s %-10d", "Remaining Items:", inventory.getTotalItems()));
-        //optimizeHamperItems(hamper);
+        hamper.printSummary();
+       // optimizeHamperItems(hamper);
         return hamper;
     }
     public Hamper createHamper(ArrayList<Client> clients, ArrayList<FoodItem> foodList)throws SQLException, DatabaseException{
@@ -898,5 +1166,61 @@ public class Database{
         //optimizeHamperItems(hamper);
         return hamper;
     }
+    public ArrayList<Client> createClients(int adultMale, int adultFemale, int childOver8, int childUnder8){
+        //Method is only responsible for:
+        //Validating arguments
+        //Converting arguments to string
+        //Checking whether a valid number of clients has been specified is not this method's job.
+        ArrayList<Client> clientList = new ArrayList<>();
+        try{
+            if(adultMale !=0){
+                for(int i = 0; i < adultMale; i++){
+                    clientList.add(createClient("Adult Male"));
+                }
+            }
+            if(adultFemale !=0){
+                for(int i = 0; i < adultMale; i++){
+                    clientList.add(createClient("Adult Female"));
+                }
+            }
+            if(childOver8 !=0){
+                for(int i = 0; i < childOver8; i++){
+                    clientList.add(createClient("Child over 8"));
+                }
+            }
+            if(childUnder8 !=0){
+                for(int i = 0; i < childUnder8; i++){
+                    clientList.add(createClient("Child under 8"));
+                }
+            }
+            return clientList;
+        }catch(SQLException exception){
+            exception.printStackTrace();
+            return null;
+        }
+    }
+    /**
+     * An internal helper method, that gets the nutritional attributes of the food item
+     * and returns them as an array of {@code int} literals such that:<br></br>
+     * <br> {@code a[0] ->} <b>ItemID</b> </br>
+     * <br> {@code a[1] ->} <b>Calorie Amount</b></br>
+     * <br> {@code a[2] ->} <b>Whole Grain Amount</b></br>
+     * <br> {@code a[3] ->} <b>Fruit Veggie Amount</b></br>
+     * <br> {@code a[4] ->} <b>Protein Amount</b></br>
+     * <br> {@code a[5] ->} <b>Other Amount</b></br>
+     * @param item is the item to obtain data about
+     * @return an {@code int} array containing information about the item
+     */
+    public int[] allItemData(FoodItem item){
+        int[] a = new int[6];
+        a[0] = item.getItemID();
+        a[1] = item.getCalories();
+        a[2] = item.getGrainContent();
+        a[3] = item.getFruitVeggiesContent();
+        a[4] = item.getProteinContent();
+        a[5] = item.getOtherContent();
+        return a;
+    }
+  
 } 
 
