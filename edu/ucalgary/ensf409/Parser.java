@@ -2,9 +2,9 @@ package edu.ucalgary.ensf409;
 import java.util.*;
 import java.util.concurrent.*;
 public class Parser extends Thread implements Callable <FoodItem>{
-    private ArrayList<FoodItem> itemList;
-    private String searchKey;
-    private int sortKey;
+    private volatile ArrayList<FoodItem> itemList;
+    private volatile String searchKey;
+    private volatile int sortKey;
     public Parser(ArrayList<FoodItem>itemList,String searchKey, int sortKey){
         this.itemList = itemList;
         this.sortKey = sortKey;
@@ -74,16 +74,22 @@ public class Parser extends Thread implements Callable <FoodItem>{
         switch(key = key.toLowerCase().trim()){
             case "itemid":
                 temp = 1;
+                return temp;
             case "fruit veggies content":
                 temp = 2;
+                return temp;
             case "grain content":
                 temp = 3;
+                return temp;
             case "protein content":
                 temp = 4;
+                return temp;
             case "other content":
                 temp = 5;
+                return temp;
             case "calories":
                 temp = 6;
+                return temp;
         }
         if(temp == 0){
             throw new IllegalArgumentException("Invalid search key argument " + key);

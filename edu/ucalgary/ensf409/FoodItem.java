@@ -12,6 +12,7 @@ public class FoodItem implements Comparator<FoodItem>{
     private final int PERCENT_PROTEIN;
     private final int PERCENT_FRUIT_VEGGIES;
     private final int PERCENT_OTHER;
+    private volatile boolean added;
     @Override public int compare(FoodItem item1, FoodItem item2){
         return Integer.compare(item1.getCalories(), item2.getCalories());
     }
@@ -28,6 +29,7 @@ public class FoodItem implements Comparator<FoodItem>{
         this.FRUIT_VEGGIE_CONTENT = Math.round((float)(calories*fruitVeggiesContent)/100);
         this.OTHER_CONTENT = Math.round((float)(calories*otherContent)/100);
         this.CALORIES = calories;
+        this.added = true;
     }
     public int getItemID() {
         return this.ITEMID;
@@ -96,20 +98,21 @@ public class FoodItem implements Comparator<FoodItem>{
         }
         switch(key){
             case 1:
-                temp = this.getItemID();
+                return this.getItemID();
             case 2:
-                temp = this.getGrainContent();
+                return this.getGrainContent();
             case 3:
-                temp = this.getFruitVeggiesContent();
+                return this.getFruitVeggiesContent();
             case 4:
-                temp = this.getProteinContent();
+               return this.getProteinContent();
             case 5:
-                temp = this.getOtherContent();
+                return this.getOtherContent();
             case 6:
-                temp = this.getCalories();
+                return this.getCalories();
         }
-        return temp;
+        return 0;
     }
+
     public int getPercentContent(String key)throws IllegalArgumentException{
         key = key.toLowerCase().trim();
         if(key.equals("grains")){
@@ -129,5 +132,11 @@ public class FoodItem implements Comparator<FoodItem>{
         }
     }public int compareTo(FoodItem foodItem){
         return compare(this,foodItem);
+    }
+    public void setIfAdded(boolean state){
+        this.added = state;
+    }
+    public boolean getIfAdded(){
+        return this.added;
     }
 }

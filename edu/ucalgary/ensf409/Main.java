@@ -1,6 +1,5 @@
 package edu.ucalgary.ensf409;
 import java.util.*;
-
 /**A main class built for testing and debugging. Not for submission. */
 public class Main{
     public static void main(String args[]) throws Exception{
@@ -19,14 +18,45 @@ public class Main{
         clients.add(clientB);
         clients.add(clientC);
         clients.add(clientD);
-        clients.add(clientD);
-        clients.add(clientC);
+        FoodList inventory = database.getAvailableFoodList();
+        ArrayList<FoodItem> list = inventory.toArrayList();
         Hamper hamper = database.createHamper(clients);
-        ArrayList<FoodItem> foodItems = hamper.getFoodList().toArrayList();
-        for(FoodItem foodItem : foodItems){
+        for(FoodItem item : list){
+            int[] arr = database.getAllItemData(item);
+            if(arr[2] == 0 && arr[3] == 0 && arr[4] == 0 && arr[5] !=0){
+               /*System.out.println(String.format("%s %18d","Other only:",item.getItemID()));
+               System.out.println(String.format("Calories: %d",item.getCalories()));
+               System.out.println("\n");*/
+            }
+            else if(arr[2] == 0 && arr[3] ==0 && arr[4] != 0 && arr[5] == 0){
+               /* System.out.println(String.format("%s %18d","Protein only:",item.getItemID()));
+                System.out.println(String.format("Calories: %d",item.getCalories()));
+                System.out.println("\n");*/
+            }
+            else if(arr[2] == 0 && arr[3] != 0 && arr[4] == 0 && arr[5] ==0){
+                System.out.println(String.format("%s %10d","Fruit Veggies only:",item.getItemID()));
+                System.out.println(String.format("Calories: %d",item.getCalories()));
+                System.out.println("\n");
+
             
+            }else if(arr[2] !=0 && arr[3] == 0 && arr[4] == 0 && arr[5] == 0){
+                /*System.out.println(String.format("%s %11d","Whole Grains Only:", item.getItemID()));
+                System.out.println(String.format("Calories: %d",item.getCalories()));
+                System.out.println("\n");*/
+
+            }
+            else if(arr[2] !=0 && arr[3] == 0 && arr[4] == 0 && arr[5] != 0){
+               /* System.out.println(String.format("%s %11d","Whole Grains & Other:", item.getItemID()));
+                System.out.println(String.format("Grain Content: %d",item.getGrainContent()));
+                System.out.println(String.format("Other Content: %d",item.getOtherContent()));
+                System.out.println("\n");*/
+
+            }
+          
         }
+       // Hamper hamper = database.createHamper(clients);
         hamper.printSummary();
+       
 
     }
 }
