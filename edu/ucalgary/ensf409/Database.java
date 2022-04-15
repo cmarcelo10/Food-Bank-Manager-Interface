@@ -2,13 +2,13 @@ package edu.ucalgary.ensf409;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.*;
-
 /**
+ * Copyright Carter Marcelo 2022
  * @version 3.0
  * @since 1.3
  * Part of the package {@code edu.ucalgary.ensf409}. Handles any connections with an SQL database.
  * Exists as an intermediate between the user and the database to maintain security
- * and integrity.
+ * and integrity. 
  */
 public class Database{
     private String username;
@@ -41,7 +41,6 @@ public class Database{
         this.fruitVeggieList = new ArrayList<FoodItem>();
         this.otherList = new ArrayList<FoodItem>();
         this.itemLookupTable = new HashMap<>();
-        
         boolean updateStatus = updateAvailableFood();
         int attempts = 0;
         //Keep trying to connect:
@@ -84,7 +83,6 @@ public class Database{
         return this.inventory;
     }
     /**
-
      * @param foodItem is the {@code FoodItem} object to remove from the database and inventory
      * @param update whether or not to update the SQL food inventory. If performing a large
      * number of updates, this should be false;
@@ -134,26 +132,12 @@ public class Database{
         else{return pointer;}
     }
     /**
-     * Compares the value of a numeric field from two foods items, and returns the
-     * {@code int} result of the comparison by calling {@code Integer.compare(x,y)}.
-     * @param item1 is the first FoodItem to compare
-     * @param item2 is the other FoodItem to compare
-     * @param stringKey is the name of the attribute to be compared.
-     * @return the value of {@code 0} if {@code item1_attribute == item2_attribute};
-     * a value {@code < 0} if{@code item1_attribute < item2_attribute}; and a value
-     * {@code > 0} {@code item1_attribute < item2_attribute}
-     */
-    public static int compareByNumericAttribute(FoodItem item1, FoodItem item2, String stringKey){
-        int numKey = stringToNumericKey(stringKey);
-        return Integer.compare(item1.getNumericAttribute(numKey),item2.getNumericAttribute(numKey));
-    }
-    /**
      * Updates the FoodList contained by the inventory to reflect 
      * the state of the SQL database
      * @return {@code true} if the update was successful; {@code false} otherwise.
      * @throws SQLException
      */
-    public boolean updateAvailableFood() throws SQLException{
+    private boolean updateAvailableFood() throws SQLException{
         this.inventory = null;
         boolean status = true;
         FoodList list = new FoodList();
@@ -190,41 +174,6 @@ public class Database{
             dbConnect.close();
         }
         return status;
-    }
-    /**
-     * @since 1.5
-     * Searches for a food item value within the database, based on the passed search key.
-     * @param searchKey is the primary key used to order the data
-     * @param searchValue is the the <b>value to search<i> for</i> </b><br></br>
-     * <br>{@code searchKey = 1} returns the value of {@code getItemID()}</br> 
-     * <br>{@code searchKey = 2} returns the value of {@code getGrainContent()}</br>
-     * <br>{@code searchKey = 3} returns the value of {@code getFruitVeggiesContent()}</br>
-     * <br>{@code searchKey = 4} returns the value of {@code getProteinContent()}</br>
-     * <br>{@code searchKey = 5} returns the value of {@code getOtherContent()}</br>
-     * <br>{@code searchKey = 6}returns the value of {@code getCalories()}</br>
-     * @return The Food Item with the value closest to the search value.
-     */
-    public FoodItem searchByValue(String searchKey, int searchValue)throws DatabaseException{
-        searchKey = searchKey.toLowerCase().trim();
-        int key = 0;
-        if(searchKey.equals("itemid") || searchKey.equals("item id")){
-            key = 1;
-        }
-        else if(searchKey.equals("fruitveggies content") || searchKey.equals("fruit veggies content")){
-            key = 3;
-        }else if(searchKey.equals("grain content")){
-            key = 2;
-        }else if(searchKey.equals("protein content")){
-            key = 4;
-        }else if(searchKey.equals("other content")){
-            key = 5;
-        }else if(searchKey.equals("calories")){
-            key = 6;
-        }
-        else{
-            throw new DatabaseException(searchKey + " is not a valid option");
-        }
-        return binarySearch(key, searchValue);
     }
 
     private FoodItem binarySearch(int sortKey, int searchKey) throws DatabaseException{
@@ -299,6 +248,56 @@ public class Database{
         }
     }
     /**
+     * Translates a String key into the appropriate numeric value for the system.
+     * Does not require a database to be initialized.
+     * @param key is the String key to be converted into a numeric key.<br></br>
+     * <br>{@code ItemID} returns 1 </br> 
+     * <br>{@code fruit veggies content} or {@code fruit veggies} returns 2 </br>
+     * <br>{@code grains} or {@code grain content} returns 3 </br>
+     * <br>{@code protein} or {@code protein content} returns 4 </br>
+     * <br>{@code other} or {@code other content} returns 5</br>
+     * <br>{@code calories} returns 6 </br>
+     * @return the {@int} key corresponding the input String key; -1 if the key was invalid.
+     * @throws DatabaseException if an invalid search key is specified (0);
+     * @return
+     */
+    public static int stringToNumericKey(String key) throws IllegalArgumentException{
+        int temp = 0;
+        switch(key = key.toLowerCase().trim()){
+            case "itemid":
+                temp = 1;
+                return temp;
+            case "fruit veggies content":
+                temp = 2;
+                return temp;
+            case "grain content":
+                temp = 3;
+                return temp;
+            case "protein content":
+                temp = 4;
+                return temp;
+            case "other content":
+                temp = 5;
+                return temp;
+            case "calories":
+                temp = 6;
+                return temp;
+            case "grains":
+                temp = 6;
+                return temp;
+            case "fruit veggies":
+                temp = 2;
+                return temp;
+            case "protein":
+                temp = 4;
+                return temp;
+            case "other":
+                temp = 5;
+                return temp;
+        }
+        throw new IllegalArgumentException("Invalid search key argument " + key);
+    }
+    /**
      * A complicated method that attempts to find the best combination of items for the clients;
      * Lines 560 - 563 inclusively hold the adjustment parameters for overflow limits on each 
      * nutrient type;
@@ -308,7 +307,7 @@ public class Database{
      * @throws DatabaseException
      * @throws SQLException
      */
-    public FoodList createHamperFoodList(ArrayList<Client> clients) throws DatabaseException{
+    private FoodList createHamperFoodList(ArrayList<Client> clients) throws DatabaseException{
         if(clients.isEmpty()){
             System.err.println("Clients list cannot be empty");
             return null;
@@ -532,8 +531,6 @@ public class Database{
                 throw new DatabaseException("an unknown error occured while handling the request");
             }
         }
-        //brute-force find food items that fill the needs gap
-        //TODO: add a "worst-case" mode that attempts to brute force the hamper if the needs cannot be met.
         cpus = Runtime.getRuntime().availableProcessors();
         int failsafe = 0;
         int overrideLimits = 0;
@@ -587,12 +584,15 @@ public class Database{
             for(int p = 0; p < futures.size(); p++){
                 Future<FoodItem> results = futures.get(p);
                 try{
+                    if(results != null){
                     FoodItem item = results.get();
-                    options.add(item);
+                        if(item != null){
+                            options.add(item);
+                        }
+                    }
                 }
-                catch(InterruptedException | ExecutionException e){
+                catch(InterruptedException | ExecutionException | NullPointerException e){
                     e.printStackTrace();
-                    throw new DatabaseException("An error occurred while handling the parallel proccessed food list");
                 }
             }
             int k = 0;
@@ -609,10 +609,15 @@ public class Database{
             int acceptableFVCOverflow = 0; // to set overflow limits for each content type
             int acceptablePCOverflow = 0;
             int acceptableOCOverflow = 0;
-
+            //!!
             //Determine if an item should or should not be added to the FoodList
             //The algorithm has the power to "ignore" bad options making it more efficient.
-            options.sort(byCalorie);
+            try{
+                options.sort(byCalorie);
+            }catch(NullPointerException e){
+                e.printStackTrace();
+                System.err.println("Unknown failure while handling data");
+            }
             while(k < options.size()){
                 FoodItem item = options.get(k);
                 boolean addItem = true;
@@ -675,7 +680,6 @@ public class Database{
                 addItem = true; //reset the "addItem" flag;
                 k++; //increment k;
             }
-            //the INTENT was to have this complex table determine which item to add
             //if none of them are ideal. However I never finished this.
             int m = 0;
             for(boolean[] bool : table){
@@ -756,63 +760,12 @@ public class Database{
         }//bottom of the while loop;   
         return foodList;
     }
-    /**
-     * Translates a String key into the appropriate numeric value for the system
-     * @param key is the String key to be converted into a numeric key.
-     * <br>{@code searchKey = 1} correlates to the value of ItemID </br> 
-     * <br>{@code searchKey = 2} correlates to the value of {@code getGrainContent()}</br>
-     * <br>{@code searchKey = 3} correlates to the value of {@code getFruitVeggiesContent()}</br>
-     * <br>{@code searchKey = 4} correlates to the value of {@code getProteinContent()}</br>
-     * <br>{@code searchKey = 5} correlates to the value of {@code getOtherContent()}</br>
-     * <br>{@code searchKey = 6} correlates to the value of {@code getCalories()}</br>
-     * <br><b>Note: values 1 and 6 are not allowed in this method.</b></br>.
-     * @return the {@int} key corresponding the input String key; -1 if the key was invalid.
-     * @throws DatabaseException if an invalid search key is specified (0);
-     * @return
-     */
-    public static int stringToNumericKey(String key) throws IllegalArgumentException{
-        int temp = 0;
-        switch(key = key.toLowerCase().trim()){
-            case "itemid":
-                temp = 1;
-                return temp;
-            case "fruit veggies content":
-                temp = 2;
-                return temp;
-            case "grain content":
-                temp = 3;
-                return temp;
-            case "protein content":
-                temp = 4;
-                return temp;
-            case "other content":
-                temp = 5;
-                return temp;
-            case "calories":
-                temp = 6;
-                return temp;
-            case "grains":
-                temp = 6;
-                return temp;
-            case "fruit veggies":
-                temp = 2;
-                return temp;
-            case "protein":
-                temp = 4;
-                return temp;
-            case "other":
-                temp = 5;
-                return temp;
-        }
-        throw new IllegalArgumentException("Invalid search key argument " + key);
-    }
-
-    public void optimize(Hamper hamper) throws DatabaseException{
+    private void optimize(Hamper hamper) throws DatabaseException{
         final ArrayList<FoodItem> remainingItems = inventory.toArrayList();
         final ArrayList<FoodItem> hamperItems = hamper.getFoodList().toArrayList();
         remainingItems.sort(byCalorie);
         hamperItems.sort(byCalorie);
-        hamperItems.forEach(item -> item.setIfAdded(true));
+        hamperItems.forEach(item -> item.setIfAdded(false));
         remainingItems.forEach(item -> item.setIfAdded(false));
         final ArrayList<Client> clients = hamper.getClients();
         Iterator<Client> iterator = clients.iterator();
@@ -826,6 +779,7 @@ public class Database{
         int currentProtein = hamper.getTotalProtein();
         int currentOther = hamper.getTotalOther();
         int currentCalories = hamper.getTotalCalories();
+
         while(iterator.hasNext()){
             Client client = iterator.next();
             totalGrainNeeds+=client.getGrains();
@@ -839,7 +793,60 @@ public class Database{
         totalFVNeeds = totalFVNeeds*7;
         totalOtherNeeds = totalOtherNeeds*7;
         totalCalories = totalCalories*7;
+        ArrayList<FoodItem> xxxO = new ArrayList<>();
+        ArrayList<FoodItem> xxPx = new ArrayList<>();
+        ArrayList<FoodItem> xxPO = new ArrayList<>();
+        ArrayList<FoodItem> xFxx = new ArrayList<>();
+        ArrayList<FoodItem> xFxO = new ArrayList<>();
+        ArrayList<FoodItem> xFPx = new ArrayList<>();
+        ArrayList<FoodItem> xFPO = new ArrayList<>();
+        ArrayList<FoodItem> Gxxx = new ArrayList<>();
+        ArrayList<FoodItem> GxxO = new ArrayList<>();
+        ArrayList<FoodItem> GxPx = new ArrayList<>();
+        ArrayList<FoodItem> GxPO = new ArrayList<>();
+        ArrayList<FoodItem> GFxx = new ArrayList<>();
+        ArrayList<FoodItem> GFxO = new ArrayList<>();
+        ArrayList<FoodItem> GFPx = new ArrayList<>();
+        ArrayList<FoodItem> GFPO = new ArrayList<>();
+        remainingItems.parallelStream().forEach(item -> {
+            int[] arr = this.getAllItemData(item);
+                 if(arr[2] == 0 && arr[3] == 0 && arr[4] == 0 && arr[5] != 0){xxxO.add(item);}
+            else if(arr[2] == 0 && arr[3] == 0 && arr[4] != 0 && arr[5] == 0){xxPx.add(item);}
+            else if(arr[2] == 0 && arr[3] == 0 && arr[4] != 0 && arr[5] != 0){xxPO.add(item);}
+            else if(arr[2] == 0 && arr[3] != 0 && arr[4] == 0 && arr[5] == 0){xFxx.add(item);}
+            else if(arr[2] == 0 && arr[3] != 0 && arr[4] == 0 && arr[5] != 0){xFxO.add(item);}
+            else if(arr[2] == 0 && arr[3] != 0 && arr[4] != 0 && arr[5] == 0){xFPx.add(item);}
+            else if(arr[2] == 0 && arr[3] != 0 && arr[4] != 0 && arr[5] != 0){xFPO.add(item);}
+            else if(arr[2] != 0 && arr[3] == 0 && arr[4] == 0 && arr[5] == 0){Gxxx.add(item);}
+            else if(arr[2] != 0 && arr[3] == 0 && arr[4] == 0 && arr[5] != 0){GxxO.add(item);}
+            else if(arr[2] != 0 && arr[3] == 0 && arr[4] != 0 && arr[5] == 0){GxPx.add(item);}
+            else if(arr[2] != 0 && arr[3] == 0 && arr[4] != 0 && arr[5] != 0){GxPO.add(item);}
+            else if(arr[2] != 0 && arr[3] != 0 && arr[4] == 0 && arr[5] == 0){GFxx.add(item);}
+            else if(arr[2] != 0 && arr[3] != 0 && arr[4] == 0 && arr[5] != 0){GFxO.add(item);}
+            else if(arr[2] != 0 && arr[3] != 0 && arr[4] != 0 && arr[5] == 0){GFPx.add(item);}
+            else if(arr[2] != 0 && arr[3] != 0 && arr[4] != 0 && arr[5] != 0){GFPO.add(item);}
+        });
+        ArrayList<ArrayList<FoodItem>> list = new ArrayList<>();
+        list.add(xxxO);
+        list.add(xxPx);
+        list.add(xxPO);
+        list.add(xFxx);
+        list.add(xFxO);
+        list.add(xFPx);
+        list.add(xFPO);
+        list.add(Gxxx);
+        list.add(GxxO);
+        list.add(GxPx);
+        list.add(GxPO);
+        list.add(GFxx);
+        list.add(GFxO);
+        list.add(GFPx);
+        list.add(GFPO);
+        hamperItems.sort(byCalorie);
+        inventory.toArrayList().sort(byCalorie);
         int i = 0;
+        int k = 0;
+        int c = 0;
         while(i < hamperItems.size()){
             int dg = currentGrain - totalGrainNeeds;
             int df = currentFV - totalFVNeeds;
@@ -872,16 +879,20 @@ public class Database{
                     hamperItems.remove(item);
                     inventory.addFoodItem(item);
                     currentOther-=item.getOtherContent();
+                    i++;
+                    continue;
                 }else if(arr[5] < dx+Math.round(0.25*dx)){
-                    this.inventory.toArrayList().sort(byOther);
+                    remainingItems.sort(byOther);
                     FoodItem pointerItem = binarySearch(stringToNumericKey("other"), 
                     Math.abs(currentOther-arr[5]));
-                    if((pointerItem.getOtherContent()- arr[5]) >=0){
+                    if((pointerItem.getOtherContent()- arr[5]) < 0){
                         hamperItems.remove(item);
-                        inventory.removeFoodItem(pointerItem);
+                        remainingItems.add(item);
+                        remainingItems.remove(pointerItem);
                         hamperItems.add(pointerItem);
-                        inventory.addFoodItem(item);
+
                         currentOther -= item.getOtherContent();
+                        currentCalories -=item.getCalories();
                         currentFV += pointerItem.getFruitVeggiesContent();
                         currentCalories +=pointerItem.getCalories();
                         currentGrain += pointerItem.getGrainContent();
@@ -896,17 +907,20 @@ public class Database{
                     hamperItems.remove(item);
                     inventory.addFoodItem(item);
                     currentProtein -=item.getProteinContent();
+                    i++;
+                    continue;
                 }
                 else if(arr[4] < dp+Math.round(0.25*dp)){
-                    this.inventory.toArrayList().sort(byProtein);
+                    remainingItems.sort(byFruitVeggies);
                     FoodItem pointerItem = binarySearch(stringToNumericKey("protein content"), 
                     Math.abs(currentProtein-arr[4]));
-                    if((pointerItem.getProteinContent()- arr[4]) >=0){
+                    if((pointerItem.getProteinContent()- arr[4]) < 0){
                         hamperItems.remove(item);
                         inventory.removeFoodItem(pointerItem);
                         hamperItems.add(pointerItem);
                         inventory.addFoodItem(item);
                         currentProtein -= item.getProteinContent();
+                        currentCalories -=item.getCalories();
                         currentFV += pointerItem.getFruitVeggiesContent();
                         currentCalories +=pointerItem.getCalories();
                         currentGrain += pointerItem.getGrainContent();
@@ -921,23 +935,74 @@ public class Database{
                     hamperItems.remove(item);
                     inventory.addFoodItem(item);
                     currentFV -= item.getFruitVeggiesContent();
-                }else if(arr[3] < dp+Math.round(0.25*dp)){
+                    i++;
+                    continue;
+                }else{  
+                    remainingItems.sort(byFruitVeggies);
                     FoodItem pointerItem = binarySearch(stringToNumericKey("fruit veggies"), 
                     Math.abs(currentFV-arr[3]));
-                    if((pointerItem.getFruitVeggiesContent()- arr[3]) >=0){
+                    if((pointerItem.getFruitVeggiesContent()- arr[3]) < 0){
                         hamperItems.remove(item);
                         inventory.removeFoodItem(pointerItem);
                         hamperItems.add(pointerItem);
                         inventory.addFoodItem(item);
+                            //put the item back into the inventory
                         currentFV -= item.getFruitVeggiesContent();
+                        currentCalories -=item.getCalories();
                         currentFV += pointerItem.getFruitVeggiesContent();
                         currentCalories +=pointerItem.getCalories();
                         currentGrain += pointerItem.getGrainContent();
                         currentProtein += pointerItem.getProteinContent();
                         currentOther += pointerItem.getOtherContent();
+                        //search for the sum of items which meets the criteria
+                        if(item.getIfAdded() == true){
+                            i++;
+                            continue;
+                        }
+                        int resetValue = currentFV;
+                        //Find a bunch of items that can collectively fill the needs gap
+                        xFxx.sort(byFruitVeggies);
+                        while((totalFVNeeds-currentFV) > 0 && xFxx.size() > 0){
+                            System.out.println("here");
+                            FoodItem replacement = binarySearch(stringToNumericKey("fruit veggies"),Math.abs(totalFVNeeds-currentFV),xFxx);
+                            replacement.getFruitVeggiesContent();
+                            int u = 0;
+                            if(replacement.getFruitVeggiesContent() < item.getFruitVeggiesContent()){
+                                currentFV += replacement.getFruitVeggiesContent();
+                                hamperItems.add(replacement);
+                                replacement.setIfAdded(true);
+                                xFxx.remove(replacement);
+                                continue;
+                            }
+                            else{
+                                int index = xFxx.indexOf(replacement);
+                                FoodItem alt = null;
+                                u = index;
+                                ArrayList<FoodItem>bufferedItems = new ArrayList<>();
+                                while(u >=0){
+                                    alt = xFxx.get(u);
+                                    if(alt.getFruitVeggiesContent() < replacement.getFruitVeggiesContent() && 
+                                    alt.getFruitVeggiesContent() < item.getFruitVeggiesContent()){ 
+                                        //find an item smaller than both previous options
+                                        bufferedItems.add(alt);
+                                        currentFV+=alt.getFruitVeggiesContent();
+                                        alt.setIfAdded(true);
+                                        xFxx.remove(alt);
+                                        break;
+                                    }
+                                    u--;
+                                }
+                                if(u < 0){
+                                    //if no item combinations can fulfill the needs
+                                    //add the item back to the list and continue the overall loop
+                                    hamperItems.add(item);
+                                    currentFV = resetValue;
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
-
                         //Remove the item from the list. Store it in a pointer
                         //Find a bunch of other items.
                         //If the sum of N items meets the requirements but is less that
@@ -954,24 +1019,27 @@ public class Database{
                         //If we hit the end of the loop but and did not meet the requirements
                         //Add the original item back to the list and continue
                         //Otherwise add the new items back to the list. 
-                    //}
-            //whole grains;
+                //whole grains;
             }
             else if(arr[2] !=0 && arr[3] == 0 && arr[4] == 0 && arr[5] == 0){
                 if(arr[2] < dg){
                     hamperItems.remove(item);
                     inventory.addFoodItem(item);
                     currentGrain -= item.getGrainContent();
+                    i++; 
+                    continue;
                 }else if(arr[2] < dg+Math.round(0.5*dg)){
-                    this.inventory.toArrayList().sort(byWholeGrains);
+                    k++;
+                    remainingItems.sort(byWholeGrains);
                     FoodItem pointerItem = binarySearch(stringToNumericKey("grain content"), 
                     Math.abs(currentGrain-arr[2]));
-                    if((pointerItem.getGrainContent()- arr[2]) >=0){
+                    if((pointerItem.getGrainContent()- arr[2]) < 0){
                         hamperItems.remove(item);
                         inventory.removeFoodItem(pointerItem);
                         hamperItems.add(pointerItem);
                         inventory.addFoodItem(item);
                         currentGrain -= item.getGrainContent();
+                        currentCalories -=item.getCalories();
                         currentFV += pointerItem.getFruitVeggiesContent();
                         currentCalories +=pointerItem.getCalories();
                         currentGrain += pointerItem.getGrainContent();
@@ -983,9 +1051,6 @@ public class Database{
             i++;
         }
         hamper.setFoodList(new FoodList(hamperItems));
-    }
-    public ArrayList<FoodItem> bruteForceAlgorithm(){
-        return null;
     }
     public Hamper createHamper(ArrayList<Client> clients)throws SQLException, DatabaseException{
         FoodList foodList = null;
@@ -1004,19 +1069,41 @@ public class Database{
             }
             else{
                 foodList = createHamperFoodList(clients);
+                //create Hamper foodlist creates the foodlist for the hamper
+                //If it encounters a fatal error, it returns null.
             }
-            listOfHampers.add(new Hamper(clients,foodList));
+            if(foodList != null){
+                listOfHampers.add(new Hamper(clients,foodList));
+            }
             i++;
         }
+        
         Comparator<Hamper> byOverflow = Comparator.comparing(item -> item.getTotalCalories());
-        listOfHampers.sort(byOverflow);
+        try{
+            listOfHampers.sort(byOverflow);
+        }catch(NullPointerException e){
+            e.printStackTrace();
+        }
         hamper = listOfHampers.get(0);
         var ptr = foodList.toArrayList();
-        for(FoodItem item: ptr){
-            removeFromInventory(item,false);
-        }
+        ptr.parallelStream().forEach(item -> {
+            try{
+                removeFromInventory(item,false);//Should remain false.
+            }
+            catch(DatabaseException | SQLException exception){
+                exception.printStackTrace();
+            }
+        });
         hamper.printSummary();
+        //A secondary optimization call. 
+
         optimize(hamper);
+
+        updateAvailableFood();
+        ArrayList<FoodItem> usedItems = hamper.getFoodList().toArrayList();
+        usedItems.forEach((item)->{try{removeFromInventory(item, false);}
+        catch(SQLException | DatabaseException e){e.printStackTrace();}});
+        //Sync the inventory with the SQL databases
         return hamper;
     }
     public ArrayList<Client> createClients(int adultMale, int adultFemale, int childOver8, int childUnder8){
@@ -1053,6 +1140,17 @@ public class Database{
         }
     }
     /**
+     * 
+     * @param clientsList the ArrayList of Client objects to be validated
+     * @return
+     */
+    public boolean validateClientList(ArrayList<Client> clientsList){
+        if(clientsList.size() <=10 && clientsList.size() > 0){
+            return true;
+        }
+        else return false;
+    }
+    /**
      * An internal helper method, that gets the nutritional attributes of the food item
      * and returns them as an array of {@code int} literals such that:<br></br>
      * <br> {@code a[0] ->} <b>ItemID</b> </br>
@@ -1064,7 +1162,7 @@ public class Database{
      * @param item is the item to obtain data about
      * @return an {@code int} array containing information about the item
      */
-    public int[] getAllItemData(FoodItem item){
+    private int[] getAllItemData(FoodItem item){
         int[] a = new int[6];
         a[0] = item.getItemID();
         a[1] = item.getCalories();

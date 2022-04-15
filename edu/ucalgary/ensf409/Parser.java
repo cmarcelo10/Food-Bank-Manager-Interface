@@ -3,7 +3,7 @@ import java.util.*;
 import java.util.concurrent.*;
 public class Parser extends Thread implements Callable <FoodItem>{
     private volatile ArrayList<FoodItem> itemList;
-    private volatile String searchKey;
+    private String searchKey;
     private volatile int sortKey;
     public Parser(ArrayList<FoodItem>itemList,String searchKey, int sortKey){
         this.itemList = itemList;
@@ -19,13 +19,11 @@ public class Parser extends Thread implements Callable <FoodItem>{
      * @return the FoodItem deemed the most optimal by the comparison
      */
     private FoodItem binarySearch(String sKey, int sortKey) throws IllegalArgumentException{
-
         int searchKey = Database.stringToNumericKey(sKey);
         ArrayList<FoodItem> foodItems = itemList;
         int leftBound = 0;
         int rightBound = foodItems.size() - 1;
         if(sortKey < foodItems.get(leftBound).getNumericAttribute(searchKey)){
-
             //if the key occurs at the start of the array
             return foodItems.get(0);
         }
@@ -98,10 +96,12 @@ public class Parser extends Thread implements Callable <FoodItem>{
     }
     @Override
     public FoodItem call() throws IllegalArgumentException{
+    try{
         try{
             return binarySearch(this.searchKey, this.sortKey);
         }catch(IllegalArgumentException e){
             throw new IllegalArgumentException();
         }
+    }catch(NullPointerException f){return null;}
     }
 }
