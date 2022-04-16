@@ -1,5 +1,6 @@
 package edu.ucalgary.ensf409;
 import java.util.*;
+
 /**A main class built for testing and debugging. Not for submission. */
 public class Main{
     public static void main(String args[]) throws Exception{
@@ -19,9 +20,16 @@ public class Main{
         clients.add(clientC);
         clients.add(clientD);
         Hamper hamper = database.createHamper(clients);
+        //var s = database.getAvailableFoodList().toArrayList();
+        //System.out.println(s.size());
         ArrayList<Hamper> hampers = new ArrayList<>();
+        var q = database.getAvailableFoodList().toArrayList();
+        Hamper hamper2 = database.createHamper(clients);
+        System.out.println(q.size());
+
         hampers.add(hamper);
-        hampers.add(hamper);
+        hampers.add(hamper2);
+        //System.out.println(Database.generateOrderForm(hampers));
         String temp = Database.generateOrderForm(hampers);
         System.out.println(temp);
     }

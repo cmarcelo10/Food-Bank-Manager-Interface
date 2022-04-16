@@ -3,6 +3,8 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.*;
+
+import javax.swing.plaf.basic.BasicInternalFrameTitlePane.RestoreAction;
 /**
  * Copyright Carter Marcelo 2022
  * @version 3.0
@@ -16,7 +18,7 @@ public class Database{
     private String url;
     private String password;
     private Connection dbConnect;
-    private volatile FoodList inventory;
+    private FoodList inventory;
     private volatile ArrayList<FoodItem> grainsList;
     private volatile ArrayList<FoodItem> proteinList;
     private volatile ArrayList<FoodItem> fruitVeggieList;
@@ -79,7 +81,6 @@ public class Database{
         return client;
     }
     public FoodList getAvailableFoodList() throws SQLException{
-        updateAvailableFood();
         return this.inventory;
     }
     /**
@@ -129,7 +130,11 @@ public class Database{
         if(update == true){
             return this.inventory.toArrayList();
         }
-        else{return pointer;}
+        else{
+            this.inventory = new FoodList(pointer);
+            return(pointer);
+        
+        }
     }
     /**
      * Updates the FoodList contained by the inventory to reflect 
@@ -312,6 +317,10 @@ public class Database{
             System.err.println("Clients list cannot be empty");
             return null;
         }
+        grainsList.clear();
+        proteinList.clear();
+        otherList.clear();
+        fruitVeggieList.clear();
         Iterator<Client> iterator = clients.iterator();
         int totalGrainNeeds = 0;
         int totalFVNeeds = 0;
@@ -584,7 +593,8 @@ public class Database{
             (manualOverrideFruitVeggies && fruitVeggieList.isEmpty() == false)){
                 tasks.add(new Parser(fruitVeggieList,"fruit veggies",(totalFVNeeds - fruitVeggies)));
             }
-            if(((other < totalOtherNeeds) && (otherList.isEmpty() == false)) || (manualOverrideOther && otherList.isEmpty() == false)){
+            if(((other < totalOtherNeeds) && (otherList.isEmpty() == false)) || 
+            (manualOverrideOther && otherList.isEmpty() == false)){
                 tasks.add(new Parser(otherList,"other",totalOtherNeeds - other));
             }
             List<Future<FoodItem>> futures = null;
@@ -803,7 +813,7 @@ public class Database{
                 break;
             }
 
-        }//bottom of the while loop;   
+        }//bottom of the while loop;
         return foodList;
     }
     private void optimize(Hamper hamper) throws DatabaseException{
@@ -969,7 +979,7 @@ public class Database{
             dx = currentOther -totalOtherNeeds;
             FoodItem item = hamperItems.get(i);
             int[] arr = this.getAllItemData(item);
-            //15 possible states
+            //16 possible states
             /*
             1   0000 *unhelpful*
             2   0001 *easy to remove*
@@ -996,7 +1006,7 @@ public class Database{
                     currentOther-=item.getOtherContent();
                     i++;
                     continue;
-                }else if(arr[5] < dx+Math.round(0.25*dx)){
+                }else{  
                     remainingItems.sort(byOther);
                     FoodItem pointerItem = binarySearch(stringToNumericKey("other"), 
                     Math.abs(currentOther-arr[5]));
@@ -1006,10 +1016,11 @@ public class Database{
                             continue;
                         }
                         hamperItems.remove(item);
-                        remainingItems.add(item); //!
+                        item.setIfAdded(false);
                         remainingItems.remove(pointerItem);
                         hamperItems.add(pointerItem);
-
+                        remainingItems.add(item);
+                        xxxO.add(item);
                         currentOther -= item.getOtherContent();
                         currentCalories -=item.getCalories();
                         currentFV += pointerItem.getFruitVeggiesContent();
@@ -1017,6 +1028,63 @@ public class Database{
                         currentGrain += pointerItem.getGrainContent();
                         currentProtein += pointerItem.getProteinContent();
                         currentOther += pointerItem.getOtherContent();
+                        //search for the sum of items which meets the criteria
+                        int resetValue = currentOther;
+                        //Find a bunch of items that can collectively fill the needs gap
+                        xxxO.sort(byOther);
+                        while((totalOtherNeeds - currentOther) > 0 && xxxO.size() > 0){
+                            FoodItem replacement = binarySearch(stringToNumericKey("other"),
+                            Math.abs(totalOtherNeeds - currentOther),xxxO);
+                            replacement.getOtherContent();
+                            int u = 0;
+                            if(replacement.getOtherContent() < item.getOtherContent()){
+                                currentOther += replacement.getOtherContent();
+                                hamperItems.add(replacement);
+                                replacement.setIfAdded(true);
+                                xxxO.remove(replacement);
+                                remainingItems.remove(replacement);
+                                continue;
+                            }
+                            else{
+                                int index = xxxO.indexOf(replacement);
+                                FoodItem alt = null;
+                                u = index;
+                                ArrayList<FoodItem>bufferedItems = new ArrayList<>();
+                                while(u >=0){
+                                    alt = xxxO.get(u);
+                                    if(alt.getOtherContent() < replacement.getOtherContent() && 
+                                    alt.getOtherContent() < item.getOtherContent()){ 
+                                        //find an item smaller than both previous options.
+                                        bufferedItems.add(alt);
+                                        currentOther+=alt.getOtherContent();
+                                        alt.setIfAdded(true);
+                                        xxxO.remove(alt);
+                                        remainingItems.remove(alt);
+                                        break;
+                                    }
+                                    u--;
+                                }
+                                if(u < 0){
+                                    //if no item combinations can fulfill the needs
+                                    //add the item back to the list and continue the overall loop
+                                    hamperItems.add(item);
+                                    bufferedItems.forEach(foodItem -> remainingItems.add(foodItem));
+                                    bufferedItems.forEach(foodItem -> xxxO.add(foodItem));
+                                    currentOther = resetValue;
+                                    break;
+                                }else{
+                                    bufferedItems.forEach(queuedItem -> hamperItems.add(queuedItem));
+                                }
+                            }
+                        }
+                        if(dx < 0){
+                            remainingItems.remove(item);
+                            hamperItems.add(item);
+                            item.setIfAdded(true);
+                            currentOther = resetValue;
+                            i++;
+                            continue;
+                        }
                     }
                 }
             }
@@ -1030,15 +1098,21 @@ public class Database{
                     i++;
                     continue;
                 }
-                else if(arr[4] < dp+Math.round(0.25*dp)){
-                    remainingItems.sort(byFruitVeggies);
-                    FoodItem pointerItem = binarySearch(stringToNumericKey("protein content"), 
+                else{  
+                    remainingItems.sort(byProtein);
+                    FoodItem pointerItem = binarySearch(stringToNumericKey("protein"), 
                     Math.abs(currentProtein-arr[4]));
-                    if((pointerItem.getProteinContent()- arr[4]) < 0){
+                    if((pointerItem.getOtherContent()- arr[4]) < 0){
+                        if(item.getIfAdded() == true){
+                            i++;
+                            continue;
+                        }
                         hamperItems.remove(item);
+                        item.setIfAdded(false);
                         remainingItems.remove(pointerItem);
                         hamperItems.add(pointerItem);
                         remainingItems.add(item);
+                        xxPx.add(item);
                         currentProtein -= item.getProteinContent();
                         currentCalories -=item.getCalories();
                         currentFV += pointerItem.getFruitVeggiesContent();
@@ -1046,6 +1120,63 @@ public class Database{
                         currentGrain += pointerItem.getGrainContent();
                         currentProtein += pointerItem.getProteinContent();
                         currentOther += pointerItem.getOtherContent();
+                        //search for the sum of items which meets the criteria
+                        int resetValue = currentProtein;
+                        //Find a bunch of items that can collectively fill the needs gap
+                        xxPx.sort(byProtein);
+                        while((totalProteinNeeds - currentProtein) > 0 && xxPx.size() > 0){
+                            FoodItem replacement = binarySearch(stringToNumericKey("protein"),
+                            Math.abs(currentProtein),xxPx);
+                            replacement.getProteinContent();
+                            int u = 0;
+                            if(replacement.getProteinContent() < item.getProteinContent()){
+                                currentProtein += replacement.getProteinContent();
+                                hamperItems.add(replacement);
+                                replacement.setIfAdded(true);
+                                xxPx.remove(replacement);
+                                remainingItems.remove(replacement);
+                                continue;
+                            }
+                            else{
+                                int index = xxPx.indexOf(replacement);
+                                FoodItem alt = null;
+                                u = index;
+                                ArrayList<FoodItem>bufferedItems = new ArrayList<>();
+                                while(u >=0){
+                                    alt = xxPx.get(u);
+                                    if(alt.getProteinContent() < replacement.getProteinContent() && 
+                                    alt.getProteinContent() < item.getProteinContent()){ 
+                                        //find an item smaller than both previous options.
+                                        bufferedItems.add(alt);
+                                        currentProtein+=alt.getProteinContent();
+                                        alt.setIfAdded(true);
+                                        xxPx.remove(alt);
+                                        remainingItems.remove(alt);
+                                        break;
+                                    }
+                                    u--;
+                                }
+                                if(u < 0){
+                                    //if no item combinations can fulfill the needs
+                                    //add the item back to the list and continue the overall loop
+                                    hamperItems.add(item);
+                                    bufferedItems.forEach(foodItem -> remainingItems.add(foodItem));
+                                    bufferedItems.forEach(foodItem -> xxPx.add(foodItem));
+                                    currentOther = resetValue;
+                                    break;
+                                }else{
+                                    bufferedItems.forEach(queuedItem -> hamperItems.add(queuedItem));
+                                }
+                            }
+                        }
+                        if(dp < 0){
+                            remainingItems.remove(item);
+                            hamperItems.add(item);
+                            item.setIfAdded(true);
+                            currentProtein = resetValue;
+                            i++;
+                            continue;
+                        }
                     }
                 }
             }
@@ -1172,15 +1303,21 @@ public class Database{
                     currentOther -= item.getOtherContent();
                     i++; 
                     continue;
-                }else if(arr[2] < dg+Math.round(0.5*dg)){
+                }else{  
                     remainingItems.sort(byWholeGrains);
-                    FoodItem pointerItem = binarySearch(stringToNumericKey("grain content"), 
+                    FoodItem pointerItem = binarySearch(stringToNumericKey("grains"), 
                     Math.abs(currentGrain-arr[2]));
                     if((pointerItem.getGrainContent()- arr[2]) < 0){
+                        if(item.getIfAdded() == true){
+                            i++;
+                            continue;
+                        }
                         hamperItems.remove(item);
+                        item.setIfAdded(false);
                         remainingItems.remove(pointerItem);
                         hamperItems.add(pointerItem);
                         remainingItems.add(item);
+                        Gxxx.add(item);
                         currentGrain -= item.getGrainContent();
                         currentCalories -=item.getCalories();
                         currentFV += pointerItem.getFruitVeggiesContent();
@@ -1188,7 +1325,265 @@ public class Database{
                         currentGrain += pointerItem.getGrainContent();
                         currentProtein += pointerItem.getProteinContent();
                         currentOther += pointerItem.getOtherContent();
+                        //search for the sum of items which meets the criteria
+                        int resetValue = currentGrain;
+                        //Find a bunch of items that can collectively fill the needs gap
+                        Gxxx.sort(byWholeGrains);
+                        while((totalGrainNeeds - currentGrain) > 0 && Gxxx.size() > 0){
+                            FoodItem replacement = binarySearch(stringToNumericKey("grain"),Math.abs(totalGrainNeeds - currentGrain),Gxxx);
+                            replacement.getGrainContent();
+                            int u = 0;
+                            if(replacement.getGrainContent() < item.getGrainContent()){
+                                currentGrain += replacement.getGrainContent();
+                                hamperItems.add(replacement);
+                                replacement.setIfAdded(true);
+                                Gxxx.remove(replacement);
+                                remainingItems.remove(replacement);
+                                continue;
+                            }
+                            else{
+                                int index = Gxxx.indexOf(replacement);
+                                FoodItem alt = null;
+                                u = index;
+                                ArrayList<FoodItem>bufferedItems = new ArrayList<>();
+                                while(u >=0){
+                                    alt = Gxxx.get(u);
+                                    if(alt.getGrainContent() < replacement.getGrainContent() && 
+                                    alt.getGrainContent() < item.getGrainContent()){ 
+                                        //find an item smaller than both previous options
+                                        bufferedItems.add(alt);
+                                        currentGrain+=alt.getGrainContent();
+                                        alt.setIfAdded(true);
+                                        Gxxx.remove(alt);
+                                        remainingItems.remove(alt);
+                                        break;
+                                    }
+                                    u--;
+                                }
+                                if(u < 0){
+                                    //if no item combinations can fulfill the needs
+                                    //add the item back to the list and continue the overall loop
+                                    hamperItems.add(item);
+                                    bufferedItems.forEach(foodItem -> remainingItems.add(foodItem));
+                                    bufferedItems.forEach(foodItem -> Gxxx.add(foodItem));
+                                    currentGrain = resetValue;
+                                    break;
+                                }else{
+                                    bufferedItems.forEach(queuedItem -> hamperItems.add(queuedItem));
+                                }
+                            }
+                        }
+                        if(dg < 0){
+                            remainingItems.remove(item);
+                            hamperItems.add(item);
+                            item.setIfAdded(true);
+                            currentGrain = resetValue;
+                            i++;
+                            continue;
+                        }
                     }
+                }
+            }
+            else if(arr[2] !=0 && arr[3] == 0 && arr[4] == 0 && arr[5] != 0){
+                if((arr[2] < dg) && (arr[5] < dx)){
+                    //if the item is less than the total surplus, then remove it and continue
+                    hamperItems.remove(item);
+                    item.setIfAdded(false);
+                    remainingItems.add(item);
+                    currentGrain -= item.getGrainContent();
+                    currentCalories -=item.getCalories();
+                    currentFV -= item.getFruitVeggiesContent();
+                    currentProtein -= item.getProteinContent();
+                    currentOther -= item.getOtherContent();
+                    i++;
+                    continue;
+                }else{
+                    hamperItems.remove(item);
+                    item.setIfAdded(false);
+                    remainingItems.add(item);
+                    currentGrain -= item.getGrainContent();
+                    currentCalories -=item.getCalories();
+                    currentFV -= item.getFruitVeggiesContent();
+                    currentProtein -= item.getProteinContent();
+                    currentOther -= item.getOtherContent();
+                    int resetValue1 = currentOther;
+                    int resetValue2 = currentGrain;
+                    while((totalGrainNeeds - currentGrain) > 0 || (totalOtherNeeds - currentOther > 0) && GxxO.size() > 0){
+                        String key = "";
+                        int diff = 0;
+                        if((totalGrainNeeds - currentGrain) > (totalOtherNeeds - currentOther)){
+                            diff = totalGrainNeeds - currentGrain;
+                            GxxO.sort(byWholeGrains);
+                            //pick the larger of the two needs to search for.
+                            key = "grain";
+                        }else{
+                            GxxO.sort(byOther);
+                            diff = totalOtherNeeds - currentOther;
+                            key = "other";
+                        }
+                        FoodItem replacement = binarySearch(stringToNumericKey(key),Math.abs(diff),GxxO);
+                        replacement.getGrainContent();
+                        int u = 0;
+                        if(replacement.getGrainContent() < item.getGrainContent() 
+                        && replacement.getOtherContent() < item.getOtherContent()){
+                            currentGrain += replacement.getGrainContent();
+                            currentOther += replacement.getOtherContent();
+                            hamperItems.add(replacement);
+                            replacement.setIfAdded(true);
+                            GxxO.remove(replacement);
+                            remainingItems.remove(replacement);
+                            continue;
+                        }
+                        else{
+                            int index = GxxO.indexOf(replacement);
+                            FoodItem alt = null;
+                            u = index;
+                            ArrayList<FoodItem>bufferedItems = new ArrayList<>();
+                            while(u >=0){
+                                alt = GxxO.get(u);
+                                if(((alt.getGrainContent() < replacement.getGrainContent() && 
+                                alt.getGrainContent() < item.getGrainContent()))
+                                &&((alt.getOtherContent() < replacement.getOtherContent())&& 
+                                alt.getOtherContent() < item.getOtherContent())){ 
+                                    //find an item smaller than both previous options
+                                    bufferedItems.add(alt);
+                                    currentGrain+=alt.getGrainContent();
+                                    currentOther+=alt.getOtherContent();
+                                    alt.setIfAdded(true);
+                                    GxxO.remove(alt);
+                                    remainingItems.remove(alt);
+                                    break;
+                                }
+                                u--;
+                            }
+                            if(u < 0){
+                                //if no item combinations can fulfill the needs
+                                //add the item back to the list and continue the overall loop
+                                hamperItems.add(item);
+                                bufferedItems.forEach(foodItem -> remainingItems.add(foodItem));
+                                bufferedItems.forEach(foodItem -> GxxO.add(foodItem));
+                                currentGrain = resetValue2;
+                                currentOther = resetValue1;
+                                break;
+                            }else{
+                                bufferedItems.forEach(queuedItem -> hamperItems.add(queuedItem));
+                            }
+                        }
+                    }
+                    if(dg < 0 || dx < 0){
+                        remainingItems.remove(item);
+                        hamperItems.add(item);
+                        item.setIfAdded(true);
+                        currentGrain = resetValue2;
+                        currentOther = resetValue1;
+                        i++;
+                        continue;
+                    }
+                }
+            }
+            else if(arr[2] !=0 && arr[3] != 0 && arr[4] == 0 && arr[5] == 0){
+                if((arr[2] < dg) && (arr[3] < df)){
+                    hamperItems.remove(item);
+                    item.setIfAdded(false);
+                    remainingItems.add(item);
+                    currentGrain -= item.getGrainContent();
+                    currentCalories -=item.getCalories();
+                    currentFV -= item.getFruitVeggiesContent();
+                    currentProtein -= item.getProteinContent();
+                    currentOther -= item.getOtherContent();
+                }else{
+                        hamperItems.remove(item);
+                        item.setIfAdded(false);
+                        remainingItems.add(item);
+                        currentGrain -= item.getGrainContent();
+                        currentCalories -=item.getCalories();
+                        currentFV -= item.getFruitVeggiesContent();
+                        currentProtein -= item.getProteinContent();
+                        currentOther -= item.getOtherContent();
+                        int resetValue1 = currentGrain;
+                        int resetValue2 = currentOther;
+                        while((totalGrainNeeds - currentGrain) > 0 || (totalFVNeeds - currentFV > 0) && GFxx.size() > 0){
+                            String key = "";
+                            int diff = 0;
+                            if((totalGrainNeeds - currentGrain) > (totalFVNeeds - currentFV )){
+                                diff = totalGrainNeeds - currentGrain;
+                                GFxx.sort(byWholeGrains);
+                                //pick the larger of the two needs to search for.
+                                key = "grain";
+                            }else{
+                                GFxx.sort(byFruitVeggies);
+                                diff = totalFVNeeds - currentFV;
+                                key = "fruit veggies";
+                            }
+                            FoodItem replacement = binarySearch(stringToNumericKey(key),Math.abs(diff),GFxx);
+                            int u = 0;
+                            if(replacement.getGrainContent() < item.getGrainContent() 
+                            && replacement.getFruitVeggiesContent() < item.getFruitVeggiesContent()){
+                                currentGrain += replacement.getGrainContent();
+                                currentFV += replacement.getFruitVeggiesContent();
+                                hamperItems.add(replacement);
+                                replacement.setIfAdded(true);
+                                GFxx.remove(replacement);
+                                remainingItems.remove(replacement);
+                                continue;
+                            }
+                            else{
+                                int index = GFxx.indexOf(replacement);
+                                FoodItem alt = null;
+                                u = index;
+                                ArrayList<FoodItem>bufferedItems = new ArrayList<>();
+                                while(u >=0){
+                                    alt = GFxx.get(u);
+                                    if(((alt.getGrainContent() < replacement.getGrainContent() && 
+                                    alt.getFruitVeggiesContent() < item.getFruitVeggiesContent()))
+                                    &&((alt.getFruitVeggiesContent() < replacement.getFruitVeggiesContent())&& 
+                                    alt.getFruitVeggiesContent() < item.getFruitVeggiesContent())){ 
+                                        //find an item smaller than both previous options
+                                        bufferedItems.add(alt);
+                                        currentGrain+=alt.getGrainContent();
+                                        currentFV+=alt.getOtherContent();
+                                        alt.setIfAdded(true);
+                                        GFxx.remove(alt);
+                                        remainingItems.remove(alt);
+                                        break;
+                                    }
+                                    u--;
+                                }
+                                if(u < 0){
+                                    //if no item combinations can fulfill the needs
+                                    //add the item back to the list and continue the overall loop
+                                    hamperItems.add(item);
+                                    bufferedItems.forEach(foodItem -> remainingItems.add(foodItem));
+                                    bufferedItems.forEach(foodItem -> GFxx.add(foodItem));
+                                    currentGrain = resetValue1;
+                                    currentFV= resetValue2;
+                                    break;
+                                }else{
+                                    bufferedItems.forEach(queuedItem -> hamperItems.add(queuedItem));
+                                }
+                            }
+                        }
+                        if(dg < 0 || df < 0){
+                            remainingItems.remove(item);
+                            hamperItems.add(item);
+                            item.setIfAdded(true);
+                            currentGrain = resetValue1;
+                            currentFV = resetValue2;
+                            i++;
+                            continue;
+                        }
+                    }
+                }
+            else if(arr[2] !=0 && arr[3] == 0 && arr[4] != 0 && arr[5] == 0){
+                if((arr[2] < dg) && (arr[4] < dp)){
+                    hamperItems.remove(item);
+                    item.setIfAdded(false);
+                    remainingItems.add(item);
+                    currentGrain -= item.getGrainContent();
+                    currentCalories -=item.getCalories();
+                    currentFV -= item.getFruitVeggiesContent();
+                    currentProtein -= item.getProteinContent();
+                    currentOther -= item.getOtherContent();
                 }
             }
             else if(arr[2] !=0 && arr[3] == 0 && arr[4] == 0 && arr[5] != 0){
@@ -1203,8 +1598,8 @@ public class Database{
                     currentOther -= item.getOtherContent();
                 }
             }
-            else if(arr[2] !=0 && arr[3] != 0 && arr[4] == 0 && arr[5] == 0){
-                if((arr[2] < dg) && (arr[3] < df)){
+            else if(arr[2] !=0 && arr[3] != 0 && arr[4] == 0 && arr[5] != 0){
+                if((arr[2] < dg) && (arr[5] < dx) && (arr[3] < df)){
                     hamperItems.remove(item);
                     item.setIfAdded(false);
                     remainingItems.add(item);
@@ -1215,8 +1610,20 @@ public class Database{
                     currentOther -= item.getOtherContent();
                 }
             }
-            else if(arr[2] !=0 && arr[3] == 0 && arr[4] != 0 && arr[5] == 0){
-                if((arr[2] < dg) && (arr[4] < dp)){
+            else if(arr[2] ==0 && arr[3] != 0 && arr[4] != 0 && arr[5] != 0){
+                if((arr[4] < dp) && (arr[5] < dx) && (arr[3] < df)){
+                    hamperItems.remove(item);
+                    item.setIfAdded(false);
+                    remainingItems.add(item);
+                    currentGrain -= item.getGrainContent();
+                    currentCalories -=item.getCalories();
+                    currentFV -= item.getFruitVeggiesContent();
+                    currentProtein -= item.getProteinContent();
+                    currentOther -= item.getOtherContent();
+                }
+            }
+            else if(arr[2] ==0 && arr[3] != 0 && arr[4] == 0 && arr[5] != 0){
+                if((arr[5] < dx) && (arr[3] < df)){
                     hamperItems.remove(item);
                     item.setIfAdded(false);
                     remainingItems.add(item);
@@ -1249,6 +1656,7 @@ public class Database{
             else{
                 foodList = createHamperFoodList(clients);
                 if(foodList == null){
+                    i++;
                     continue;
                 }
                 //create Hamper foodlist creates the foodlist for the hamper
@@ -1257,7 +1665,6 @@ public class Database{
             listOfHampers.add(new Hamper(clients,foodList));
             i++;
         }
-        
         Comparator<Hamper> byOverflow = Comparator.comparing(item -> item.getTotalCalories());
         try{
             listOfHampers.sort(byOverflow);
@@ -1281,7 +1688,6 @@ public class Database{
             e.printStackTrace();
             return hamper;
         }
-        updateAvailableFood();
         ArrayList<FoodItem> usedItems = hamper.getFoodList().toArrayList();
         usedItems.forEach((item)->{try{removeFromInventory(item, false);}
         catch(SQLException | DatabaseException e){e.printStackTrace();}});
