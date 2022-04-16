@@ -18,13 +18,11 @@ public class Main{
         clients.add(clientB);
         clients.add(clientC);
         clients.add(clientD);
-        //clients.add(clientC);
-
         Hamper hamper = database.createHamper(clients);
-
-       // Hamper hamper = database.createHamper(clients);
-        hamper.printSummary();
-       
-
+        ArrayList<Hamper> hampers = new ArrayList<>();
+        hampers.add(hamper);
+        hampers.add(hamper);
+        String temp = Database.generateOrderForm(hampers);
+        System.out.println(temp);
     }
 }
