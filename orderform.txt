@@ -1,0 +1,99 @@
+ORDER RECEIPT
+------------------
+Name:
+Date: 
+------------------
+HAMPER 1:
+
+CLIENTS:
+
+Adult Male ------ x 2
+Adult Female ---- x 2
+Child over 8 ---- x 1
+Child under 8 --- x 1
+------------------------------------
+
+ITEMS:
+
+#5 ---- Apple, dozen
+#7 ---- Chicken broth, can
+#13 --- Wheat bread, loaf
+#14 --- Orange, dozen
+#16 --- Eggs, dozen
+#17 --- Eggs, dozen
+#18 --- Chicken breast, pound
+#20 --- Tuna, six large cans
+#21 --- Tuna, six small cans
+#22 --- Tuna, six large cans
+#23 --- Tuna, six small cans
+#24 --- Cheddar cheese, pound
+#25 --- Cheddar cheese, pound
+#28 --- Bananas, bunch
+#29 --- Milk, 1%, 4 L
+#31 --- Ground beef, pound
+#32 --- Ground beef, pound
+#33 --- Ground beef, pound
+#34 --- Avocado, dozen
+#35 --- Avocado, dozen
+#40 --- Peanut butter, 2 kg jar
+#43 --- Ground pork, pound
+#50 --- Strawberries, 2 kg
+#52 --- Cottage cheese
+#53 --- Trail mix, 1 kg
+#54 --- Soy protein, 1 kg
+#58 --- Greek yogurt, plain, 1 kg
+#59 --- Tofu, 1 kg
+#70 --- Banana, bunch 6
+#81 --- Hummus
+#86 --- Eggs, 1 kg
+#89 --- Coconut milk, 1 liter
+#92 --- Yam, 1 kg
+#94 --- Canned corn, 1 tin
+#96 --- Almonds, large bag
+#97 --- Protein shake, 10 cans
+#98 --- Soy burger, 20
+#101 -- Beyond Breakfast sausage
+#106 -- Creamed spinach
+#107 -- Creamed spinach
+#108 -- Creamed spinach
+#109 -- String cheese, pack of 20
+#110 -- String cheese, pack of 20
+#112 -- Brown rice, large bag
+#118 -- Frozen blueberries, 2100 g
+#121 -- Lima beans, 1 pound
+#124 -- Tinned sardines, pack of 5
+#125 -- Tinned sardines, pack of 5
+#126 -- Egg salad, 57 g
+#131 -- Roasted seaweed, 250 g
+#133 -- Escargot, 500 g
+#134 -- Salmon, 5 filets
+#135 -- Frozen squid, 1 pound
+#136 -- Cocktail shrimp, package
+#139 -- Pearl barley, 1 pound
+#142 -- Whey powder, large jar
+#143 -- Oranges, bag
+#145 -- Raisins, 40 g
+#146 -- Dates, container
+#151 -- Peaches, crate
+#152 -- Peaches, crate
+#153 -- Pumpkin, very large
+#157 -- Dried apricots, package
+#160 -- Strawberry Skyr
+#161 -- Kefir
+#162 -- Cottage cheese
+#163 -- Bluegreen algae powder, 100 g
+#164 -- Chia seeds, 100 g
+#166 -- Fish fingers, box of 30
+#167 -- Cream of mushroom soup
+
+
+Food Group       Required  Included
+------------------------------------
+Whole Grains:     15372     20042
+Fruit Veggies:    24192     25783
+Protein:          25956     26015
+Other:            22680     50203
+------------------------------------
+TOTAL CALORIES:   88200    121979
+------------------------------------------------------
+THANK YOU

@@ -1,17 +1,14 @@
 package edu.ucalgary.ensf409;
 import javax.swing.*;
 import javax.swing.JSpinner.DefaultEditor;
+import java.util.*;
+
+
 
 import java.awt.*;
 import java.awt.event.*;
-
-
-public class HamperForm implements ActionListener
+public class HamperForm extends OrderForm
 {
-    public static void main(String[] args)
-    {
-        new HamperForm();
-    }
     boolean invalidState = false;
     JFrame frame = new JFrame("Food Bank Orderform");
     JPanel orderForm = new JPanel(new GridBagLayout());
@@ -35,8 +32,7 @@ public class HamperForm implements ActionListener
     JSpinner client4 = new JSpinner(client4S);
 
     JButton enterOrderButton = new JButton("Enter");
-
-    public HamperForm()
+    public HamperForm() throws Exception
     {
         ((DefaultEditor) client1.getEditor()).getTextField().setEditable(false);
         ((DefaultEditor) client2.getEditor()).getTextField().setEditable(false);
@@ -47,7 +43,6 @@ public class HamperForm implements ActionListener
 
         gbc.weightx = 1;
         gbc.weighty = 1;
-
         title.setText("Orderform");
         title.setHorizontalAlignment(JLabel.CENTER);
         title.setFont(title.getFont().deriveFont(20f));
@@ -158,10 +153,9 @@ public class HamperForm implements ActionListener
         gbc.gridx = 3;      
         gbc.gridy = 5;       
         enterOrderButton.addActionListener(this);
+
         orderForm.add(enterOrderButton, gbc);
-
         frame.add(orderForm);
-
         frame.setSize(500, 500);
         frame.setResizable(false);
         frame.setVisible(true);
@@ -174,27 +168,27 @@ public class HamperForm implements ActionListener
         int c2 = (Integer)client2.getValue();
         int c3 = (Integer)client3.getValue();
         int c4 = (Integer)client4.getValue();
-        String url = "jdbc:mysql://localhost:3306/food_inventory";
-        String user = "root";
-        String password = "password";
-        Database database = null;
+        Hamper hamper = null;
         try{
-            database = new Database(url, user, password);
-            database.createClients(c1, c2, c3, c4);
-            Hamper hamper = database.createHamper(database.createClients(c1, c2, c3, c4));
-            if(hamper == null){
-                invalidState = true;
-                frame.dispose();
+            ArrayList<Client> clients = super.createClients(c1, c2, c3, c4);
+            hamper = super.createHamper(clients);
+            System.out.println(hamper.printSummary());
+            frame.dispose();
+        }catch(Exception exception){
+            try{
                 new HamperForm();
             }
-        }catch(Exception exception){
-            invalidState = true;
-            new HamperForm();
-            invalidState = false;
+            catch(Exception exception2){
+                exception2.addSuppressed(exception);
+                exception2.printStackTrace();
+            }
             System.out.println("Exception!");
         }
         finally{
             frame.dispose();
+        }
+        if(hamper != null){
+            orderedHampers.add(hamper);
         }
     }
 }

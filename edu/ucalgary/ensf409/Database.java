@@ -17,10 +17,6 @@ public class Database{
     private String url;
     private String password;
     private Connection dbConnect;
-    private volatile ArrayList<FoodItem> grainsList;
-    private volatile ArrayList<FoodItem> proteinList;
-    private volatile ArrayList<FoodItem> fruitVeggieList;
-    private volatile ArrayList<FoodItem> otherList;
     protected volatile FoodList inventory;
     protected volatile Comparator<FoodItem> byProtein;
     protected volatile Comparator<FoodItem> byWholeGrains;
@@ -37,10 +33,6 @@ public class Database{
         this.byOther = Comparator.comparing(item -> item.getOtherContent());
         this.byWholeGrains = Comparator.comparing(item -> item.getGrainContent());
         this.byProtein = Comparator.comparing((item -> item.getProteinContent()));
-        this.grainsList = new ArrayList<FoodItem>();
-        this.proteinList = new ArrayList<FoodItem>();
-        this.fruitVeggieList = new ArrayList<FoodItem>();
-        this.otherList = new ArrayList<FoodItem>();
         boolean updateStatus = updateAvailableFood();
         int attempts = 0;
         //Keep trying to connect:
@@ -117,6 +109,7 @@ public class Database{
                                 pointer.remove(pointer.get(i));
                                 break;
                             }
+                            i++;
                         }
                     }
                 }
@@ -356,10 +349,10 @@ public class Database{
             System.err.println("List of clients cannot be empty!");
             return null;
         }
-        grainsList.clear();
-        proteinList.clear();
-        otherList.clear();
-        fruitVeggieList.clear();
+        ArrayList<FoodItem> grainsList = new ArrayList<>();
+        ArrayList<FoodItem> proteinList = new ArrayList<>();
+        ArrayList<FoodItem> fruitVeggieList = new ArrayList<>();
+        ArrayList<FoodItem> otherList = new ArrayList<>();
         Iterator<Client> iterator = clients.iterator();
         int totalGrainNeeds = 0;
         int totalFVNeeds = 0;
@@ -558,7 +551,7 @@ public class Database{
         finally{
             executor1.shutdown();
             try{
-                executor1.awaitTermination(Integer.MAX_VALUE, TimeUnit.MICROSECONDS);
+                executor1.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
             }catch(InterruptedException e){exception1 = true;}
             if(exception1){
                 throw new DatabaseException("An error occurred while parsing the data");
@@ -584,7 +577,7 @@ public class Database{
                 finally{
                     executor.shutdown();
                     try{
-                        executor.awaitTermination(Integer.MAX_VALUE, TimeUnit.MICROSECONDS);
+                        executor.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
                     }catch(InterruptedException e){
                         throw new DatabaseException("an unknown error occured while handling the request");
                     }
@@ -870,42 +863,22 @@ public class Database{
         return foodList;
     }
     /**
-     *A helper method that optimizes the
-     * @param hamper
-     * @throws DatabaseException
+     * Takes an {@code ArrayList} of {@code FoodItems}, and splits the list
+     * into 15 sublists based on the properites of each {@code FoodItem} object. 
+     * The naming system is as follows:
+     * <br></<br>
+     * <br>{@code 'G' = Whole Grain Content};</br><br> {@code'F' = Fruit Veggies Content};</br>
+     * <br>{@code 'P' = Protein Content};</br><br>{@code 'O' = Other Content}.</br>
+     * <br>The list names are ordered such that all items within a list containing a capital letter
+     * are guaranteed to have a content value greater than 0. For example, {@code Gxxx} contains items such that
+     * only {@code item.getGrainContent()} would return a non-zero value.
+     * The letter 'x' in a list's name indicates that all FoodItem objects contained within said
+     * list do not contain the content of the letter at the specified position. Positioning is consistent
+     * throughout. As a result, it should be kept in mind that<b> some sublists may be empty</b>.</br>
+     * @param remainingItems the list of {@code FoodItem} objects to be sorted
+     * @return an arraylist containing all of the lists.
      */
-    private void optimize(Hamper hamper) throws DatabaseException{
-        final ArrayList<FoodItem> remainingItems = inventory.toArrayList();
-        final ArrayList<FoodItem> hamperItems = hamper.getFoodList().toArrayList();
-        remainingItems.sort(byCalorie);
-        hamperItems.sort(byCalorie);
-        hamperItems.parallelStream().forEach(item -> item.setIfAdded(false));
-        remainingItems.parallelStream().forEach(item -> item.setIfAdded(false));
-        final ArrayList<Client> clients = hamper.getClients();
-        Iterator<Client> iterator = clients.iterator();
-        int totalGrainNeeds = 0;
-        int totalFVNeeds = 0;
-        int totalProteinNeeds = 0;
-        int totalOtherNeeds = 0;
-        int totalCalories = 0;
-        int currentGrain = hamper.getTotalGrains();
-        int currentFV = hamper.getTotalFruitVeggies();
-        int currentProtein = hamper.getTotalProtein();
-        int currentOther = hamper.getTotalOther();
-        int currentCalories = hamper.getTotalCalories();
-        while(iterator.hasNext()){
-            Client client = iterator.next();
-            totalGrainNeeds+=client.getGrains();
-            totalFVNeeds+=client.getFruitVeggies();
-            totalProteinNeeds+=client.getProtein();
-            totalOtherNeeds+=client.getOther();
-            totalCalories+=client.getCalories();
-        }
-        totalGrainNeeds = totalGrainNeeds*7;
-        totalProteinNeeds = totalProteinNeeds*7;
-        totalFVNeeds = totalFVNeeds*7;
-        totalOtherNeeds = totalOtherNeeds*7;
-        totalCalories = totalCalories*7;
+    public ArrayList<ArrayList<FoodItem>> splitIntoSublistsByContent(ArrayList<FoodItem>remainingItems){
         ArrayList<FoodItem> xxxO = new ArrayList<>();
         ArrayList<FoodItem> xxPx = new ArrayList<>();
         ArrayList<FoodItem> xxPO = new ArrayList<>();
@@ -938,7 +911,6 @@ public class Database{
         list.add(GFPx);
         list.add(GFPO);
         try{
-
                 remainingItems.parallelStream().forEach(item ->{
                 int[] arr = this.getAllItemData(item);
                 if(arr[2] == 0 && arr[3] == 0 && arr[4] == 0 && arr[5] != 0){xxxO.add(item);}
@@ -1023,10 +995,64 @@ public class Database{
         }catch(Exception g){
             list.forEach(array -> {if(array.isEmpty() == false){array.sort(byCalorie);}});
         }
-        
-        hamperItems.sort(byCalorie);
-       // Collections.reverse(hamperItems);
+        return list;
+
+    }
+    /**
+     *A helper method that optimizes the
+     * @param hamper
+     * @throws DatabaseException
+     */
+    private void removeSurplusHamperContents(Hamper hamper) throws DatabaseException{
+        final ArrayList<FoodItem> remainingItems = inventory.toArrayList();
+        final ArrayList<FoodItem> hamperItems = hamper.getFoodList().toArrayList();
         remainingItems.sort(byCalorie);
+        hamperItems.sort(byCalorie);
+        hamperItems.parallelStream().forEach(item -> item.setIfAdded(false));
+        remainingItems.parallelStream().forEach(item -> item.setIfAdded(false));
+        hamperItems.sort(byCalorie);
+        remainingItems.sort(byCalorie);
+        final ArrayList<Client> clients = hamper.getClients();
+        Iterator<Client> iterator = clients.iterator();
+        int totalGrainNeeds = 0;
+        int totalFVNeeds = 0;
+        int totalProteinNeeds = 0;
+        int totalOtherNeeds = 0;
+        int totalCalories = 0;
+        int currentGrain = hamper.getTotalGrains();
+        int currentFV = hamper.getTotalFruitVeggies();
+        int currentProtein = hamper.getTotalProtein();
+        int currentOther = hamper.getTotalOther();
+        int currentCalories = hamper.getTotalCalories();
+        while(iterator.hasNext()){
+            Client client = iterator.next();
+            totalGrainNeeds+=client.getGrains();
+            totalFVNeeds+=client.getFruitVeggies();
+            totalProteinNeeds+=client.getProtein();
+            totalOtherNeeds+=client.getOther();
+            totalCalories+=client.getCalories();
+        }
+        totalGrainNeeds = totalGrainNeeds*7;
+        totalProteinNeeds = totalProteinNeeds*7;
+        totalFVNeeds = totalFVNeeds*7;
+        totalOtherNeeds = totalOtherNeeds*7;
+        totalCalories = totalCalories*7;
+        ArrayList<ArrayList<FoodItem>> masterList = splitIntoSublistsByContent(remainingItems);
+        ArrayList<FoodItem> xxxO = masterList.get(0);
+        ArrayList<FoodItem> xxPx = masterList.get(1);
+        ArrayList<FoodItem> xxPO = masterList.get(2);
+        ArrayList<FoodItem> xFxx = masterList.get(3);
+        ArrayList<FoodItem> xFxO = masterList.get(4);
+        ArrayList<FoodItem> xFPx = masterList.get(5);
+        ArrayList<FoodItem> xFPO = masterList.get(6);
+        ArrayList<FoodItem> Gxxx = masterList.get(7);
+        ArrayList<FoodItem> GxxO = masterList.get(8);
+        ArrayList<FoodItem> GxPx = masterList.get(9);
+        ArrayList<FoodItem> GxPO = masterList.get(10);
+        ArrayList<FoodItem> GFxx = masterList.get(11);
+        ArrayList<FoodItem> GFxO = masterList.get(12);
+        ArrayList<FoodItem> GFPx = masterList.get(13);
+        ArrayList<FoodItem> GFPO = masterList.get(14);
         int i = 0;
         int dg = currentGrain - totalGrainNeeds;
         int df = currentFV - totalFVNeeds;
@@ -1753,7 +1779,127 @@ public class Database{
             i++;
         }
     }
-    public Hamper createHamper(ArrayList<Client> clients)throws SQLException, DatabaseException{
+    public ExecutorService getFixedThreadPool(){
+        int cpus = Runtime.getRuntime().availableProcessors();
+        ExecutorService executorService = Executors.newFixedThreadPool(cpus);
+        return executorService;
+    }
+    public Callable<Hamper> createHamperCallable(ArrayList<Client> clients){
+        Callable<Hamper> callable = new Callable<Hamper>(){
+            public Hamper call(){
+                FoodList foodList = null;
+                try{
+                    foodList = createHamperFoodList(clients);
+                    Hamper hamper = new Hamper(clients, foodList);
+                    return hamper;
+                }catch(Exception e){
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+        };
+        return callable;
+    }
+    private Hamper getHamperWithLeastSurplus(List<Future<Hamper>> hamperOptions){
+        ArrayList<Hamper> listOfHampers = new ArrayList<>();
+        Comparator<Hamper> byOverflow = Comparator.comparing(item -> item.getTotalCalories());
+        for(int p = 0; p < hamperOptions.size(); p++){
+            Future<Hamper> hamperOption = hamperOptions.get(p);
+            try{
+                if(hamperOption != null){
+                Hamper item = hamperOption.get();
+                    if(item != null){
+                        listOfHampers.add(item);
+                    }
+                }
+            }
+            catch(InterruptedException | ExecutionException e){
+                e.printStackTrace();
+            }
+        }
+        try{
+            listOfHampers.sort(byOverflow);
+        }catch(NullPointerException e){
+            e.printStackTrace();
+            return new Hamper();
+        }
+        Hamper hamper = listOfHampers.get(0);
+        removeHamperItemsFromLocalInventory(hamper);
+        return hamper;
+
+    }
+    private boolean removeHamperItemsFromLocalInventory(Hamper hamper){
+        int originalInventorySize = inventory.toArrayList().size();
+        var pointer = hamper.getFoodList().toArrayList();
+        pointer.forEach(item -> {
+            try{
+                removeFromInventory(item,false);//Should remain false.
+            }
+            catch(DatabaseException | SQLException exception){
+                exception.printStackTrace();
+            }
+        });
+        int newInventorySize = inventory.toArrayList().size();
+        int hamperFoodListSize = hamper.getFoodList().toArrayList().size();
+        if((newInventorySize + hamperFoodListSize == originalInventorySize)){
+            return true;
+        }else{return false;}
+    }
+    private boolean removeAllHamperItemsFromSQLDatabase(Hamper hamper){
+        var pointer = hamper.getFoodList().toArrayList();
+        var backup = this.inventory;
+        try{
+            pointer.forEach(item -> {
+                try{
+                    removeFromInventory(item,false);//Should remain false.
+                }
+                catch(DatabaseException | SQLException exception){
+                    exception.printStackTrace();
+                }
+            });
+        }catch(Exception e){
+            e.printStackTrace();
+            this.inventory = backup;
+            return false;
+        }
+        return true;
+    }
+    private List<Future<Hamper>> invokeAllHamperAlgorithms(ExecutorService executor,ArrayList<Callable<Hamper>>callables)
+    throws DatabaseException{
+        int attempts = 0;
+        List<Future<Hamper>> hamperOptions = null;
+        try{
+            while(attempts < 5){
+                try{
+                hamperOptions = executor.invokeAll(callables);
+                break;
+                }catch(InterruptedException e){
+                    e.printStackTrace();
+                    attempts++;
+                }
+            }
+        }finally{
+            if(attempts == 5){
+                executor.shutdownNow();
+            }
+            try{
+                executor.shutdown();
+                executor.awaitTermination(Long.SIZE,TimeUnit.NANOSECONDS);
+            }catch(Exception e){
+                e.printStackTrace();
+                executor.shutdownNow();
+                throw new DatabaseException("A fatal error has occurred while processing. Please reboot the program.");
+            }
+        }
+        return hamperOptions;
+    }
+    /**
+     * A backup method to be called if an error occurs while attempting to process hamper
+     * options concurrently.
+     * @param clients the arrayList of clients with needs to be fulfilled
+     * @return
+     */
+    private Hamper generateHamperFoodListsIteratively(ArrayList<Client> clients) throws DatabaseException, SQLException{
         FoodList foodList = null;
         ArrayList<Hamper> listOfHampers = new ArrayList<>();
         Hamper hamper = null;
@@ -1799,16 +1945,57 @@ public class Database{
         });
         //A secondary optimization call.
         try{
-            optimize(hamper);
-        }catch(NullPointerException e){
+            removeSurplusHamperContents(hamper);
+        }catch(NullPointerException | DatabaseException e ){
             e.printStackTrace();
             return hamper;
         }
         ArrayList<FoodItem> usedItems = hamper.getFoodList().toArrayList();
         usedItems.forEach((item)->{try{removeFromInventory(item, false);} //finalize changes
         catch(SQLException | DatabaseException e){e.printStackTrace();}});
-        //Sync the inventory with the SQL databases
-
+        return hamper;
+    }
+    public Hamper createHamper(ArrayList<Client> clients){
+        if(validateClientList(clients) == false){
+            System.out.println("A maximum of 10 clients per hamper may be specified");
+            return new Hamper();
+        }
+        Hamper hamper = null;
+        try{
+            ArrayList<Callable<Hamper>> algorithms = new ArrayList<>();
+            for(int m = 0; m < 4; m++){
+                algorithms.add(createHamperCallable(clients));
+            }
+            ExecutorService executor = getFixedThreadPool();
+            List<Future<Hamper>> listOfPossibleHampers = invokeAllHamperAlgorithms(executor,algorithms);
+            hamper = getHamperWithLeastSurplus(listOfPossibleHampers);
+            //Sync the inventory with the SQL databases
+        }catch(Exception q){
+            try{
+                return generateHamperFoodListsIteratively(clients);
+            }catch(Exception x){
+                q.printStackTrace();
+                x.printStackTrace();
+                return new Hamper();
+            }
+        }
+        try{
+            removeHamperItemsFromLocalInventory(hamper);
+            removeSurplusHamperContents(hamper);
+            validateHamperContents(hamper);
+        }catch(DatabaseException e){
+            e.printStackTrace();
+        }finally{
+            if(removeAllHamperItemsFromSQLDatabase(hamper) == false){
+                try{
+                    validateHamperContents(hamper);
+                    removeHamperItemsFromLocalInventory(hamper);
+                }catch(Exception exception){
+                    exception.printStackTrace();
+                    return new Hamper();
+                }
+            }
+        }
         return hamper;
     }
     /**
@@ -1845,7 +2032,7 @@ public class Database{
             return clientList;
         }catch(SQLException exception){
             exception.printStackTrace();
-            return null;
+            return clientList;
         }
     }
     /**
@@ -1870,7 +2057,7 @@ public class Database{
         final String underlineTitle = "------------------";
         String nameField = "Name:\n";
         String dateField = "Date: ";
-        String date = LocalDate.now().toString();
+        String date = "";
         builder1.append(titleField);
         builder1.append(underlineTitle+"\n");
         builder1.append(nameField);
@@ -1879,6 +2066,9 @@ public class Database{
         int k = 1;
         for(Hamper hamper : hampers){
             builder1.append(String.format("HAMPER %d:",k));
+            if(hamper.getFoodList() == null){
+                builder1.append("Created in error.\n\n\n");
+            }else{
             builder1.append("\n");
             String str = hamper.printSummary();
             builder1.append(str);
@@ -1889,30 +2079,26 @@ public class Database{
             builder1.append(underlineTitle);
             builder1.append(underlineTitle);
             builder1.append("\n");
+            }
             k++;
         }
         builder1.append("THANK YOU");
         builder1.append("\n");
-        PrintWriter writer = null;
-        try{
-            File file = new File("orderform.txt");
-            writer = new PrintWriter(file);
-            writer.write(builder1.toString());
-        }
-        catch(Exception e){
-            e.printStackTrace();
-        }finally{
-            writer.close();
-        }
-        return builder1.toString();
+        String text = builder1.toString();
+        return text;
     }
-    public static String generateOrderForm(ArrayList<Hamper> hampers, String name){
+    public static String generateOrderForm(ArrayList<Hamper> hampers, String name, int day, int month, int year){
         StringBuilder builder1 = new StringBuilder();
         final String titleField = "ORDER FORM\n";
         final String underlineTitle = "------------------";
         String nameField = "Name: " + name + "\n";
         String dateField = "Date: ";
-        String date = LocalDate.now().toString();
+        String date = "";
+        try{
+        date = LocalDate.of(year,month,day).toString();
+        }catch(Exception e){
+            System.err.println("Invalid date specified");
+        }
         builder1.append(titleField);
         builder1.append(underlineTitle+"\n");
         builder1.append(nameField);
@@ -1921,6 +2107,9 @@ public class Database{
         int k = 1;
         for(Hamper hamper : hampers){
             builder1.append(String.format("HAMPER %d:",k));
+            if(hamper.getFoodList() == null){
+                builder1.append("Created in error.\n\n\n");
+            }else{
             String str = hamper.printSummary();
             builder1.append(str);
             builder1.append("\n");
@@ -1929,20 +2118,37 @@ public class Database{
             builder1.append(underlineTitle);
             builder1.append(underlineTitle);
             builder1.append("\n");
+            }
             k++;
         }
+        return builder1.toString();
+    }
+    public static boolean writeToFile(String text, String fname){
+        boolean status = true;
         PrintWriter writer = null;
+        StringBuilder builder = new StringBuilder();
+        builder.append(fname);
+        builder.append(".txt");
         try{
-            File file = new File("orderform.txt");
+            File file = new File(builder.toString());
+            int n = 1;
+            while(file.exists()){
+                builder.replace(0,builder.length(),"");
+                builder.append(fname+"("+n+")");
+                builder.append(".txt");
+                file = new File(builder.toString());
+                n++;
+            }
             writer = new PrintWriter(file);
-            writer.write(builder1.toString());
+            writer.write(text);
         }
         catch(Exception e){
             e.printStackTrace();
+            status = false;
         }finally{
             writer.close();
         }
-        return builder1.toString();
+        return status;
     }
     /**
      * An internal helper method, that gets the nutritional attributes of the food item

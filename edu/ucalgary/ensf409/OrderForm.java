@@ -4,14 +4,13 @@ import java.awt.event.*;
 import javax.swing.*;
 import java.util.*;
 import java.sql.*;
-
-public class OrderForm implements ActionListener
+public class OrderForm extends Database implements ActionListener
 {
-    public static void main(String args[]) 
+    protected ArrayList<Hamper> orderedHampers;
+    public static void main(String args[]) throws Exception
     {
         new OrderForm();
     }
-
     JFrame frame = new JFrame("Food Bank Manager");
     JTabbedPane tabs = new JTabbedPane();
     JPanel orderPage = new JPanel(new GridBagLayout());
@@ -29,8 +28,10 @@ public class OrderForm implements ActionListener
     JButton returnButton1 = new JButton("Return");
     JButton returnButton2 = new JButton("Return");
 
-    OrderForm()
-    {
+    OrderForm() throws Exception
+    
+    {   super("jdbc:mysql://localhost:3306/food_inventory","root","password");
+        this.orderedHampers = new ArrayList<>();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         orderPageSetup();
@@ -159,7 +160,6 @@ public class OrderForm implements ActionListener
         gbc.gridx = 1;
         gbc.gridy = 0;
         clientNeeds.add(spacer2, gbc);
-
         gbc.gridx = 2;
         gbc.gridy = 0;
         updateClientButton.addActionListener(this);
@@ -169,7 +169,6 @@ public class OrderForm implements ActionListener
         String clientNames[] = {"Item", "Grain", "Fruit & Veg", "Protein", "Dairy", "Quantity"};
         JTable clientTable = new JTable(clientData, clientNames);
         JScrollPane client = new JScrollPane(clientTable);
-
         gbc.ipady = 575;
         gbc.anchor = GridBagConstraints.CENTER; 
         gbc.insets = new Insets(5, 15, 15, 15);
@@ -178,13 +177,11 @@ public class OrderForm implements ActionListener
         gbc.gridy = 1;
         clientNeeds.add(client, gbc);
     }
-
     public void orderListSetup()
     {
         JTabbedPane orders = new JTabbedPane();
         orderPage.add(orders);
     }
-
     public void actionPerformed(ActionEvent e)
     {
         if (e.getSource() == databaseButton)
@@ -197,7 +194,13 @@ public class OrderForm implements ActionListener
         }
         else if (e.getSource() == newHamperButton)
         {
-            HamperForm.main(null);
+            try{
+                new HamperForm();
+            }catch(Exception exception){
+                exception.printStackTrace();
+                System.exit(-1);
+            }
+           
         }
         else if (e.getSource() == orderListButton)
         {
@@ -205,7 +208,8 @@ public class OrderForm implements ActionListener
         }        
         else if (e.getSource() == printOrderButton)
         {
-            //print order
+            String text = Database.generateOrderForm(orderedHampers);
+            Database.writeToFile(text, "orderform");
         }
         else if (e.getSource() == returnButton1)
         {
