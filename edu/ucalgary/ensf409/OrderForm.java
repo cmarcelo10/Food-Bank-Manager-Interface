@@ -6,11 +6,7 @@ import java.util.*;
 import java.sql.*;
 public class OrderForm extends Database implements ActionListener
 {
-    protected ArrayList<Hamper> orderedHampers;
-    public static void main(String args[]) throws Exception
-    {
-        new OrderForm();
-    }
+    private ArrayList<Hamper> orderedHampers;
     JFrame frame = new JFrame("Food Bank Manager");
     JTabbedPane tabs = new JTabbedPane();
     JPanel orderPage = new JPanel(new GridBagLayout());
@@ -28,7 +24,7 @@ public class OrderForm extends Database implements ActionListener
     JButton returnButton1 = new JButton("Return");
     JButton returnButton2 = new JButton("Return");
 
-    OrderForm() throws Exception
+    OrderForm(String url, String user, String password) throws Exception
     
     {   super("jdbc:mysql://localhost:3306/food_inventory","root","password");
         this.orderedHampers = new ArrayList<>();
@@ -128,7 +124,7 @@ public class OrderForm extends Database implements ActionListener
         foodInventory.add(updateDatabaseButton, gbc);
 
         Object[][] inventoryData = {};
-        String inventoryNames[] = {"Item", "Grain", "Fruit & Veg", "Protein", "Dairy", "Quantity"};
+        String inventoryNames[] = {"Item", "Grain", "Fruit & Veg", "Protein", "Other", "Quantity"};
         JTable inventoryTable = new JTable(inventoryData, inventoryNames);
         JScrollPane inventory = new JScrollPane(inventoryTable);
 
@@ -192,15 +188,8 @@ public class OrderForm extends Database implements ActionListener
         {
             tabs.setSelectedIndex(1);
         }
-        else if (e.getSource() == newHamperButton)
-        {
-            try{
-                new HamperForm();
-            }catch(Exception exception){
-                exception.printStackTrace();
-                System.exit(-1);
-            }
-           
+        else if (e.getSource() == newHamperButton){
+            int status = createHamperFromInput();
         }
         else if (e.getSource() == orderListButton)
         {
@@ -218,6 +207,39 @@ public class OrderForm extends Database implements ActionListener
         else if (e.getSource() == returnButton2)
         {
             tabs.setSelectedIndex(0);
+        }
+    }
+    public int createHamperFromInput(){
+        int status = 0;
+        ArrayList<Client> clients = null;
+        HamperForm form = new HamperForm();
+        clients = parseUserInput(form.getUserInput());
+        if(status == 0){
+            JOptionPane.showMessageDialog(null, "Hamper successfully generated");
+        }else if(status == -1){
+            JOptionPane.showMessageDialog(null, "Too many or too few clients entered. Please retry your input");
+        }else{
+            JOptionPane.showMessageDialog(null, 
+            "Unfortunately your request cannot be fulfilled at this time");
+        }
+        if(clients == null){
+            return -1;
+        }
+        Hamper hamper = super.createHamper(clients);
+        if(hamper.getFoodList() != null){
+            orderedHampers.add(hamper);
+            return 0;
+        }else{
+            return 1;
+        }
+    }
+    private ArrayList<Client> parseUserInput(int[] values){
+        ArrayList<Client> clients = super.createClients(values[0], values[1], values[2], values[3]);
+        if(super.validateClientList(clients)){
+            return clients;
+        }
+        else{
+            return null;
         }
     }
 }

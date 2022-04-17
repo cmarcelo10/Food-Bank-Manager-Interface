@@ -1784,7 +1784,7 @@ public class Database{
         ExecutorService executorService = Executors.newFixedThreadPool(cpus);
         return executorService;
     }
-    public Callable<Hamper> createHamperCallable(ArrayList<Client> clients){
+    private Callable<Hamper> createHamperCallable(ArrayList<Client> clients){
         Callable<Hamper> callable = new Callable<Hamper>(){
             public Hamper call(){
                 FoodList foodList = null;
@@ -1956,10 +1956,6 @@ public class Database{
         return hamper;
     }
     public Hamper createHamper(ArrayList<Client> clients){
-        if(validateClientList(clients) == false){
-            System.out.println("A maximum of 10 clients per hamper may be specified");
-            return new Hamper();
-        }
         Hamper hamper = null;
         try{
             ArrayList<Callable<Hamper>> algorithms = new ArrayList<>();
@@ -1986,7 +1982,7 @@ public class Database{
         }catch(DatabaseException e){
             e.printStackTrace();
         }finally{
-            if(removeAllHamperItemsFromSQLDatabase(hamper) == false){
+            //if(removeAllHamperItemsFromSQLDatabase(hamper) == false){
                 try{
                     validateHamperContents(hamper);
                     removeHamperItemsFromLocalInventory(hamper);
@@ -1994,7 +1990,7 @@ public class Database{
                     exception.printStackTrace();
                     return new Hamper();
                 }
-            }
+            //}
         }
         return hamper;
     }

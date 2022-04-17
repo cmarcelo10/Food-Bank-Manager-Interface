@@ -7,21 +7,6 @@ public class Main{
         String url = "jdbc:mysql://localhost:3306/food_inventory";
         String user = "root";
         String password = "password";
-        Database database = new Database(url, user, password);
-        //FoodItem item = database.searchByValue("calories", 2105);
-        //System.out.println(item.getItemInfo());
-        Client clientA = database.createClient("Adult Male");
-        Client clientB = database.createClient("Adult Female");
-        Client clientC = database.createClient("Child under 8");
-        Client clientD = database.createClient("Child over 8");
-        ArrayList<Client> clients = new ArrayList<Client>();
-        clients.add(clientA);
-        clients.add(clientB);
-        clients.add(clientC);
-        clients.add(clientD);
-        Hamper hamper = database.createHamper(clients);
-        ArrayList<Hamper> hampers = new ArrayList<>();
-        hampers.add(hamper);
-
+        new OrderForm(url, user, password);
     }
 }
