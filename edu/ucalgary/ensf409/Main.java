@@ -19,18 +19,17 @@ public class Main{
         clients.add(clientB);
         clients.add(clientC);
         clients.add(clientD);
+        clients.add(clientA);
+        clients.add(clientB);
         Hamper hamper = database.createHamper(clients);
         //var s = database.getAvailableFoodList().toArrayList();
         //System.out.println(s.size());
         ArrayList<Hamper> hampers = new ArrayList<>();
-        var q = database.getAvailableFoodList().toArrayList();
-        Hamper hamper2 = database.createHamper(clients);
-        System.out.println(q.size());
-
         hampers.add(hamper);
-        hampers.add(hamper2);
+        //hampers.add(hamper2);
         //System.out.println(Database.generateOrderForm(hampers));
         String temp = Database.generateOrderForm(hampers);
         System.out.println(temp);
+        hamper.getOptimizationProperties();
     }
 }

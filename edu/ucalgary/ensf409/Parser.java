@@ -10,7 +10,6 @@ public class Parser extends Thread implements Callable <FoodItem>{
         this.sortKey = sortKey;
         this.searchKey = searchKey;
     }
-   
     /**
      * 
      * @param left the index of the first element to be compared

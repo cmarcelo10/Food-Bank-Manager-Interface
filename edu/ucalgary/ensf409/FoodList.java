@@ -9,12 +9,12 @@ import java.util.*;
  * @see java.util.ArrayList
  */
 public class FoodList{
-    private ArrayList<FoodItem> foodItems;
-    private int wholeGrainsContent;
-    private int fruitVeggieContent;
-    private int proteinContent;
-    private int otherContent;
-    private int calorieContent;
+    private volatile ArrayList<FoodItem> foodItems;
+    private volatile int wholeGrainsContent;
+    private volatile int fruitVeggieContent;
+    private volatile int proteinContent;
+    private volatile int otherContent;
+    private volatile int calorieContent;
 
     public static Comparator<FoodItem> compareByGrain = Comparator.comparing(f -> f.getGrainContent());
     public static Comparator<FoodItem> compareByProtein = Comparator.comparing(f -> f.getProteinContent());
