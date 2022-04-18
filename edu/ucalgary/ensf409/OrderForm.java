@@ -164,6 +164,7 @@ public class OrderForm extends Database implements ActionListener
             inventoryTable = new JTable();
         }
         JScrollPane inventory = new JScrollPane(inventoryTable);
+        inventoryTable.setDefaultEditor(Object.class, null);
         gbc.ipady = 575;
         gbc.anchor = GridBagConstraints.CENTER; 
         gbc.insets = new Insets(5, 15, 15, 15);
