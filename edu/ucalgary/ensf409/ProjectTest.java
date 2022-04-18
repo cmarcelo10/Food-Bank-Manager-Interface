@@ -37,37 +37,37 @@ public class ProjectTest{
     public void NumericAttributesTest(){
         boolean passed = false;
         FoodItem newFood = new FoodItem(3045, "Hotdog", 45, 40, 5, 10, 900);
-        int ItemID = newFood.getNumericAttribute(1);
+        int ItemID = newFood.getProperty(1);
         if(ItemID == 3045){
             passed = true;
         }
         assertTrue("Method getItemID or getNumericAttributesTest did not return correct value; expected: " + 3045 + ", but was: " + ItemID, passed);
         passed = false;
-        int GrainContent = newFood.getNumericAttribute(2);
+        int GrainContent = newFood.getProperty(2);
         if(GrainContent == 405){
             passed = true;
         }
         assertTrue("Method getGrainContent or getNumericAttributesTest did not return correct value; expected: " + 405 + ", but was: " + GrainContent, passed);
         passed = false;
-        int FVContent = newFood.getNumericAttribute(3);
+        int FVContent = newFood.getProperty(3);
         if(FVContent == 45){
             passed = true;
         }
         assertTrue("Method getFVContent or getNumericAttributesTest did not return correct value.", passed);
         passed = false;
-        int proteinContent = newFood.getNumericAttribute(4);
+        int proteinContent = newFood.getProperty(4);
         if(proteinContent == 360){
             passed = true;
         }
         assertTrue("Method getProteinContent or getNumericAttributesTest did not return correct value.", passed);
         passed = false;
-        int otherContent = newFood.getNumericAttribute(5);
+        int otherContent = newFood.getProperty(5);
         if(otherContent == 90){
             passed = true;
         }
         assertTrue("Method getOtherContent or getNumericAttributesTest did not return correct value; expected: " + 90 + ", but was: " + otherContent, passed);
         passed = false;
-        int Calories = newFood.getNumericAttribute(6);
+        int Calories = newFood.getProperty(6);
         if(Calories == 900){
             passed = true;
         }

@@ -1,7 +1,7 @@
 package edu.ucalgary.ensf409;
 import java.util.*;
 public class FoodItem implements Comparator<FoodItem>{
-    private final int ITEMID;
+    private final int ITEM_ID;
     private final String NAME;
     private final int GRAIN_CONTENT;
     private final int PROTEIN_CONTENT;
@@ -12,6 +12,18 @@ public class FoodItem implements Comparator<FoodItem>{
     private final int PERCENT_PROTEIN;
     private final int PERCENT_FRUIT_VEGGIES;
     private final int PERCENT_OTHER;
+
+    public static final int ID = 1;
+    public static final int WHOLE_GRAINS = 2;
+    public static final int FRUIT_VEGGIES = 3;
+    public static final int PROTEIN = 4;
+    public static final int OTHER = 5;
+    public static final int CALORIE_AMOUNT = 6;
+    public static final int WHOLE_GRAINS_PERCENT = 7;
+    public static final int FRUIT_VEGGIE_PERCENT = 8;
+    public static final int PROTEIN_PERCENT = 9;
+    public static final int OTHER_PERCENT = 10;
+    
     private volatile boolean added;
     @Override public int compare(FoodItem item1, FoodItem item2){
         return Integer.compare(item1.getCalories(), item2.getCalories());
@@ -22,7 +34,7 @@ public class FoodItem implements Comparator<FoodItem>{
         this.PERCENT_PROTEIN = proteinContent;
         this.PERCENT_FRUIT_VEGGIES = fruitVeggiesContent;
         this.PERCENT_OTHER = otherContent;
-        this.ITEMID = itemid;
+        this.ITEM_ID = itemid;
         this.NAME = name;
         this.GRAIN_CONTENT = Math.round((float)(calories*grainContent)/100);
         this.PROTEIN_CONTENT=Math.round((float)(calories*proteinContent)/100);
@@ -32,7 +44,7 @@ public class FoodItem implements Comparator<FoodItem>{
         this.added = true;
     }
     public int getItemID() {
-        return this.ITEMID;
+        return this.ITEM_ID;
     }
     public int getCalories() {
         return this.CALORIES;
@@ -88,8 +100,7 @@ public class FoodItem implements Comparator<FoodItem>{
      * <br>{@code key = 6}returns the value of {@code getCalories()}</br>
      * @return The {@code int} value from the getter specified by the search key.
      */
-    public int getNumericAttribute(int key){
-        int temp = 0;
+    public int getProperty(int key){
         if(key > 6 || key < 1){
             key = key % 6;
             if(key == 0){

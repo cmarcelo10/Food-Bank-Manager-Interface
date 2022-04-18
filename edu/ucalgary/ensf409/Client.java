@@ -63,6 +63,10 @@ public class Client{
             throw new IllegalArgumentException("Failed to initialize client: invalid client type \"" + clientType + "\"");
         }
     }
+    /**
+     * Gets all the needs of the client and returns them as an arraylis
+     * @return
+     */
     public ArrayList<String> getNeeds(){
         String wholeGrains = String.format("Whole grains: %d",WHOLE_GRAINS);
         String fruitVeggies = String.format("Fruit and Veggies: %d",FRUIT_VEGGIES);

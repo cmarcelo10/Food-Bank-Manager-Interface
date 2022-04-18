@@ -9,21 +9,13 @@ public class OrderForm extends Database implements ActionListener
 {
     private JTabbedPane tabs = new JTabbedPane();
     private JPanel foodInventory = new JPanel(new GridBagLayout());
-    private JPanel clientNeeds = new JPanel(new GridBagLayout());
-    private  JPanel orderList = new JPanel();
     private JTable inventoryTable = new JTable();
     private Object inventoryNames[] = {"ItemID", "Name", "Whole Grains", "Fruit & Veggies", "Protein", "Other", "Calories"};
-    private JButton databaseButton = new JButton("Inventory");
-    private JButton clientDataButton = new JButton("Individual Needs");
-    private JButton orderListButton = new JButton("Order List");
     private JButton updateDatabaseButton = new JButton("Update Inventory");
-    private JButton updateClientButton = new JButton("Update Client Info");
     private JButton returnButton1 = new JButton("Return");
-    private JButton returnButton2 = new JButton("Return");
-    private JPanel orderPage = new JPanel(new GridBagLayout());
     private ArrayList<Hamper> orderedHampers;
     private HamperForm hamperForm;
-    JScrollPane inventory = new JScrollPane();
+    private JScrollPane inventory = new JScrollPane();
     private JPanel orderUI = new JPanel(new GridBagLayout());
     private JFrame frame = new JFrame("Food Bank Manager");
     private GridBagConstraints gbc = new GridBagConstraints();
@@ -127,7 +119,6 @@ public class OrderForm extends Database implements ActionListener
         }
         foodInventory.remove(inventory);
         inventoryTable.setModel(new DefaultTableModel(inventoryData,inventoryNames));
-        inventory = null;
         inventory = new JScrollPane(inventory);
         foodInventory.add(inventory);
     }
