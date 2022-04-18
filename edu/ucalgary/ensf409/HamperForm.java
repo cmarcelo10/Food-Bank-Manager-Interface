@@ -22,12 +22,10 @@ public class HamperForm{
     public final JSpinner CLIENT_D_SPINNER;
     private final JButton ENTER_ORDER_BUTTON = new JButton("Enter Order");
     private final JButton PRINT_ORDER_BUTTON = new JButton("Print Order Form");
-    private final int SOUTH = GridBagConstraints.SOUTH;
-    private final int HORIZONTAL = GridBagConstraints.HORIZONTAL;
     public HamperForm(JPanel anchor, int maxClients)
-    {   Insets clientInsets = new Insets(5, 30, 5, 10);
-        Insets firstInset = new Insets(100,5,5,10);
-        Insets spinnerInsets = new Insets(5,5,5,10);
+    {   Insets clientInsets = new Insets(5, 75, 5, 10);
+        Insets firstInset = new Insets(120,50,5,75);
+        Insets spinnerInsets = new Insets(5,50,5,75);
         this.maxClients = maxClients;
         this.orderForm = anchor;
         this.spinnerA = new SpinnerNumberModel(0,0,maxClients,1);
@@ -46,23 +44,23 @@ public class HamperForm{
         this.c3Label.setFont(c3Label.getFont().deriveFont(14f));
         this.c2Label.setFont(c2Label.getFont().deriveFont(14f));
         this.c1Label.setFont(c1Label.getFont().deriveFont(14f));
-        addInputComponent(c1Label, CLIENT_A_SPINNER, new Insets(100, 30, 5,10),
-        firstInset, 0, 1,4,1);
-        addInputComponent(c2Label, CLIENT_B_SPINNER, clientInsets, spinnerInsets,0, 2,4,2);
-        addInputComponent(c3Label, CLIENT_C_SPINNER, clientInsets, spinnerInsets,0, 3,4,3);
-        addInputComponent(c4Label, CLIENT_D_SPINNER, clientInsets, spinnerInsets,0, 4,4,4);
+        addInputComponent(c1Label, CLIENT_A_SPINNER, new Insets(120, 75, 5,10),
+        firstInset, 0, 1, 1, 1);
+        addInputComponent(c2Label, CLIENT_B_SPINNER, clientInsets, spinnerInsets,0, 2, 1, 2);
+        addInputComponent(c3Label, CLIENT_C_SPINNER, clientInsets, spinnerInsets,0, 3, 1, 3);
+        addInputComponent(c4Label, CLIENT_D_SPINNER, clientInsets, spinnerInsets,0, 4, 1, 4);
         changeIfSpinnerIsEditable(CLIENT_A_SPINNER, false);
         changeIfSpinnerIsEditable(CLIENT_B_SPINNER, false);
         changeIfSpinnerIsEditable(CLIENT_C_SPINNER, false);
         changeIfSpinnerIsEditable(CLIENT_D_SPINNER, false);
         addTitleToWindow("Order Form");
-        addTextBoxToWindow("Enter a maximum of 10 clients",0,10,1, 4, 0, 5,12f,
-        GridBagConstraints.SOUTH,GridBagConstraints.CENTER,
-        new Insets(10,10,10,10));
-        addButtonToWindow(anchor,ENTER_ORDER_BUTTON,0,10, 1, 1, 3, 5,
-        GridBagConstraints.SOUTH, GridBagConstraints.HORIZONTAL, new Insets(100, 5, 30, 30));
-        addButtonToWindow(anchor,PRINT_ORDER_BUTTON,0,10, 0, 1, 6, 5,
-        GridBagConstraints.SOUTH, GridBagConstraints.HORIZONTAL, new Insets(100, 5, 30, 30));
+        addTextBoxToWindow("Enter a maximum of 10 clients",0,1,1, 4, 0, 5,12f,
+        GridBagConstraints.PAGE_START,GridBagConstraints.HORIZONTAL,
+        new Insets(20,10,10,10));
+        addButtonToWindow(anchor,ENTER_ORDER_BUTTON,1,10, 1, 4, 0, 6,
+        GridBagConstraints.SOUTH, GridBagConstraints.HORIZONTAL, new Insets(30, 30, 10, 30));
+        addButtonToWindow(anchor,PRINT_ORDER_BUTTON,0,10, 1, 1, 3, 7,
+        GridBagConstraints.SOUTHEAST, GridBagConstraints.HORIZONTAL, new Insets(10, 280, 30, 30));
     }
     public void changeIfSpinnerIsEditable(JSpinner spinner, boolean state){
         ((DefaultEditor)spinner.getEditor()).getTextField().setEditable(state);
@@ -72,7 +70,6 @@ public class HamperForm{
     }
     public JButton getPrintOrderButton(){
         return this.PRINT_ORDER_BUTTON;
-
     }
     public int getClientASpinnerValue(){
         return (Integer)(this.CLIENT_A_SPINNER.getValue());
@@ -155,10 +152,10 @@ public class HamperForm{
     private void addInputComponent(JLabel label, JSpinner spinner, Insets textInset, Insets spinnerInset,
     int textX, int textY, int spinnerX, int spinnerY){
         var gbc2 = addSpinnerToWindow(spinner, 0, 10, 1, 
-        2, spinnerX, spinnerY, GridBagConstraints.EAST, GridBagConstraints.VERTICAL, 
+        3, spinnerX, spinnerY, GridBagConstraints.EAST, GridBagConstraints.HORIZONTAL, 
         spinnerInset);
         var gbc1 = addLabelToWindow(label, 0, 10, 1, 
-        2, textX, textY, SOUTH, HORIZONTAL, textInset);
+        1, textX, textY, GridBagConstraints.SOUTH, GridBagConstraints.HORIZONTAL, textInset);
         orderForm.add(label, gbc1);
         orderForm.add(spinner,gbc2);
 ;    }
@@ -170,8 +167,8 @@ public class HamperForm{
         gbc.anchor = anchor;
         gbc.fill = fill;
         gbc.insets = insets;
-        gbc.gridheight = 1;
-        gbc.gridwidth = 1;
+        gbc.gridheight = gridHeight;
+        gbc.gridwidth = gridWidth;
         gbc.gridx = gridx;      
         gbc.gridy = gridy;
         panel.add(button, gbc);

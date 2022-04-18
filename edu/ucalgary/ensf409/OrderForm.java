@@ -28,16 +28,16 @@ public class OrderForm extends Database implements ActionListener
     private GridBagConstraints gbc = new GridBagConstraints();
     protected final JButton ENTER_ORDER_BUTTON = new JButton("Enter");
     OrderForm(String url, String user, String password) throws Exception{   
-        super("jdbc:mysql://localhost:3306/food_inventory","root","password");
+        super("jdbc:mysql://localhost:3306/food_inventory","root","LilBunny<3");
         this.orderedHampers = new ArrayList<>();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.frame.add(orderUI);
         this.hamperForm = new HamperForm(orderUI,10);
         hamperForm.getEnterOrderButton().addActionListener(this); 
-        frame.setSize(750, 750);
-        frame.setResizable(true);
-        frame.setVisible(true);
         hamperForm.getPrintOrderButton().addActionListener(this);
+        frame.setSize(750, 750);
+        frame.setResizable(false);
+        frame.setVisible(true);
         /*
         //orderPageSetup();
         //inventorySetup();
@@ -125,7 +125,7 @@ public class OrderForm extends Database implements ActionListener
                 }
             }
         }else{
-            JOptionPane.showMessageDialog(null,"Order created successfully","Database message",JOptionPane.OK_OPTION);
+            JOptionPane.showMessageDialog(null,"Order created successfully","Database message", JOptionPane.OK_OPTION);
             orderedHampers.add(hamper);
         }
     }
