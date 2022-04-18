@@ -36,13 +36,17 @@ public class Database{
         boolean updateStatus = updateAvailableFood();
         int attempts = 0;
         //Keep trying to connect:
-        while(!(updateStatus) && attempts < 10){
-            System.out.println("Failed to connect... retrying ("+ attempts+1+"/10)");
-            updateStatus = updateAvailableFood();
-            attempts++;
-        }
-        if(updateStatus == false){
-            throw new DatabaseException();
+        try{
+            while(!(updateStatus) && attempts < 10){
+                System.out.println("Failed to connect... retrying ("+ attempts+1+"/10)");
+                updateStatus = updateAvailableFood();
+                attempts++;
+            }
+            if(updateStatus == false){
+                throw new DatabaseException();
+            }
+        }catch(NullPointerException e){
+            e.printStackTrace();
         }
     }
     public Client createClient(String clientType)throws SQLException{
