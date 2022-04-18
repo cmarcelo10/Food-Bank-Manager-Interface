@@ -74,7 +74,7 @@ public class OrderForm extends Database implements ActionListener
             }
         else if(str != null){
             this.hamperForm.throwErrorDialog(1);
-            JOptionPane.showMessageDialog(null,str));
+            JOptionPane.showMessageDialog(null,str);
         }
         }else{
             JOptionPane.showMessageDialog(null,"Order created successfully","Database message", JOptionPane.OK_OPTION);
