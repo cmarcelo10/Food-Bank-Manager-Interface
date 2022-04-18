@@ -72,7 +72,7 @@ public class OrderForm extends Database implements ActionListener
         }
         else{
             Hamper hamper = super.createHamper(clients, false);
-            JOptionPane.showMessageDialog(null,"Order created successfully","Database message", JOptionPane.OK_OPTION);
+            JOptionPane.showMessageDialog(null,"Order created successfully","Database message",JOptionPane.INFORMATION_MESSAGE);
             orderedHampers.add(hamper);
         }
     }
@@ -100,7 +100,7 @@ public class OrderForm extends Database implements ActionListener
             String text = Database.generateOrderForm(orderedHampers);
             String fname = JOptionPane.showInputDialog(null, "Save as: ",JOptionPane.OK_CANCEL_OPTION);
             Database.writeToFile(text, fname);
-            JOptionPane.showMessageDialog(null, "Order form saved");
+            JOptionPane.showMessageDialog(null, "Order form saved","Order Form",JOptionPane.INFORMATION_MESSAGE);
         }
         else if (e.getSource().equals(returnButton1))
         {

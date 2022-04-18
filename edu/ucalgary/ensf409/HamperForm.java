@@ -175,18 +175,19 @@ public class HamperForm{
     }
     public boolean throwErrorDialog(int code){
         if(code == -1){
-            JOptionPane.showMessageDialog(null, 
-            "Error: Total number of clients must be between 0 and " + maxClients);
+            JOptionPane.showMessageDialog(null,
+            "Error: Total number of clients must be between 0 and "+maxClients,"Input Error"
+            ,JOptionPane.WARNING_MESSAGE);
             return false;
 
         }else if(code == 1){
             JOptionPane.showMessageDialog(null, 
-            "Clients' needs cannot be fully met");
+            "Clients' needs cannot be fully met","Warning",JOptionPane.ERROR_MESSAGE);
             return true;
         }
         else{
             JOptionPane.showMessageDialog(null, 
-            "Unable to complete the request" + maxClients);
+            "Unable to complete the request" + maxClients,"Error",JOptionPane.ERROR_MESSAGE);
             return false;
         }
     }

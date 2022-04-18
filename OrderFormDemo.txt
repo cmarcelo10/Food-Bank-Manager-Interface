@@ -1,0 +1,131 @@
+ORDER RECEIPT
+------------------
+Name:
+Date: 
+------------------
+HAMPER 1:
+
+CLIENTS:
+
+Adult Male ------ x 1
+Adult Female ---- x 1
+Child over 8 ---- x 1
+Child under 8 --- x 1
+------------------------------------
+
+ITEMS:
+
+#6 ---- Granola Bar, box
+#7 ---- Chicken broth, can
+#14 --- Orange, dozen
+#15 --- Orange, dozen
+#18 --- Chicken breast, pound
+#34 --- Avocado, dozen
+#35 --- Avocado, dozen
+#40 --- Peanut butter, 2 kg jar
+#54 --- Soy protein, 1 kg
+#70 --- Banana, bunch 6
+#78 --- Kidney beans, 1 pound
+#81 --- Hummus
+#84 --- Wheaties, family size
+#94 --- Canned corn, 1 tin
+#97 --- Protein shake, 10 cans
+#98 --- Soy burger, 20
+#101 -- Beyond Breakfast sausage
+#106 -- Creamed spinach
+#107 -- Creamed spinach
+#108 -- Creamed spinach
+#121 -- Lima beans, 1 pound
+#124 -- Tinned sardines, pack of 5
+#125 -- Tinned sardines, pack of 5
+#126 -- Egg salad, 57 g
+#134 -- Salmon, 5 filets
+#135 -- Frozen squid, 1 pound
+#136 -- Cocktail shrimp, package
+#142 -- Whey powder, large jar
+#143 -- Oranges, bag
+#145 -- Raisins, 40 g
+#151 -- Peaches, crate
+#152 -- Peaches, crate
+#160 -- Strawberry Skyr
+#161 -- Keffir
+#162 -- Cottage cheese
+#163 -- Bluegreen algae powder, 100 g
+#164 -- Chia seeds, 100 g
+#166 -- Fish fingers, box of 30
+#167 -- Cream of mushroom soup
+
+
+Food Group       Required  Included
+------------------------------------
+Whole Grains:     10332     11581
+Fruit Veggies:    16002     16048
+Protein:          17136     17229
+Other:            13230     19203
+------------------------------------
+TOTAL CALORIES:   56700     63940
+------------------------------------------------------
+HAMPER 2:
+
+CLIENTS:
+
+Adult Female ---- x 1
+Child over 8 ---- x 1
+Child under 8 --- x 1
+------------------------------------
+
+ITEMS:
+
+#16 --- Eggs, dozen
+#17 --- Eggs, dozen
+#20 --- Tuna, six large cans
+#21 --- Tuna, six small cans
+#22 --- Tuna, six large cans
+#23 --- Tuna, six small cans
+#24 --- Cheddar cheese, pound
+#25 --- Cheddar cheese, pound
+#29 --- Milk, 1%, 4 L
+#31 --- Ground beef, pound
+#32 --- Ground beef, pound
+#33 --- Ground beef, pound
+#41 --- Bran flakes, 1 kg
+#43 --- Ground pork, pound
+#44 --- Meatballs, 1 kg
+#51 --- Cantaloupe, dozen
+#53 --- Trail mix, 1 kg
+#55 --- Turkey, whole
+#58 --- Greek yogurt, plain, 1 kg
+#59 --- Tofu, 1 kg
+#62 --- Bacon, 1 kg
+#63 --- Quinoa, 1 kg
+#72 --- Sweet potato, bag
+#86 --- Eggs, 1 kg
+#88 --- Black olives, large tin
+#89 --- Coconut milk, 1 liter
+#92 --- Yam, 1 kg
+#96 --- Almonds, large bag
+#109 -- String cheese, pack of 20
+#110 -- String cheese, pack of 20
+#118 -- Frozen blueberries, 2100 g
+#122 -- Dried figs, 500 g
+#131 -- Roasted seaweed, 250 g
+#133 -- Escargot, 500 g
+#137 -- Roasted mixed nuts, 56 oz
+#139 -- Pearl barley, 1 pound
+#140 -- Plaintain, 4
+#144 -- Tinned vegetable chilli
+#146 -- Dates, container
+#153 -- Pumpkin, very large
+#157 -- Dried apricots, package
+
+
+Food Group       Required  Included
+------------------------------------
+Whole Grains:      7532      7631
+Fruit Veggies:    11452     11745
+Protein:          12236     12485
+Other:             7980     48912
+------------------------------------
+TOTAL CALORIES:   39200     80827
+------------------------------------------------------
+THANK YOU

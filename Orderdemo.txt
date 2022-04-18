@@ -1,0 +1,146 @@
+ORDER RECEIPT
+------------------
+Name:
+Date: 
+------------------
+HAMPER 1:
+
+CLIENTS:
+
+Adult Male ------ x 6
+------------------------------------
+
+ITEMS:
+
+#7 ---- Chicken broth, can
+#14 --- Orange, dozen
+#15 --- Orange, dozen
+#16 --- Eggs, dozen
+#17 --- Eggs, dozen
+#18 --- Chicken breast, pound
+#20 --- Tuna, six large cans
+#21 --- Tuna, six small cans
+#22 --- Tuna, six large cans
+#23 --- Tuna, six small cans
+#24 --- Cheddar cheese, pound
+#25 --- Cheddar cheese, pound
+#28 --- Bananas, bunch
+#29 --- Milk, 1%, 4 L
+#31 --- Ground beef, pound
+#32 --- Ground beef, pound
+#33 --- Ground beef, pound
+#34 --- Avocado, dozen
+#40 --- Peanut butter, 2 kg jar
+#42 --- Nutella, 1 kg
+#43 --- Ground pork, pound
+#44 --- Meatballs, 1 kg
+#50 --- Strawberries, 2 kg
+#51 --- Cantaloupe, dozen
+#52 --- Cottage cheese
+#53 --- Trail mix, 1 kg
+#54 --- Soy protein, 1 kg
+#55 --- Turkey, whole
+#58 --- Greek yogurt, plain, 1 kg
+#59 --- Tofu, 1 kg
+#62 --- Bacon, 1 kg
+#70 --- Banana, bunch 6
+#72 --- Sweet potato, bag
+#81 --- Hummus
+#86 --- Eggs, 1 kg
+#89 --- Coconut milk, 1 liter
+#92 --- Yam, 1 kg
+#94 --- Canned corn, 1 tin
+#96 --- Almonds, large bag
+#97 --- Protein shake, 10 cans
+#98 --- Soy burger, 20
+#101 -- Beyond Breakfast sausage
+#107 -- Creamed spinach
+#108 -- Creamed spinach
+#109 -- String cheese, pack of 20
+#110 -- String cheese, pack of 20
+#112 -- Brown rice, large bag
+#118 -- Frozen blueberries, 2100 g
+#122 -- Dried figs, 500 g
+#123 -- Dried figs, 500 g
+#124 -- Tinned sardines, pack of 5
+#125 -- Tinned sardines, pack of 5
+#126 -- Egg salad, 57 g
+#127 -- Grape jelly
+#131 -- Roasted seaweed, 250 g
+#133 -- Escargot, 500 g
+#134 -- Salmon, 5 filets
+#135 -- Frozen squid, 1 pound
+#136 -- Cocktail shrimp, package
+#137 -- Roasted mixed nuts, 56 oz
+#139 -- Pearl barley, 1 pound
+#140 -- Plaintain, 4
+#142 -- Whey powder, large jar
+#143 -- Oranges, bag
+#144 -- Tinned vegetable chilli
+#145 -- Raisins, 40 g
+#146 -- Dates, container
+#151 -- Peaches, crate
+#152 -- Peaches, crate
+#153 -- Pumpkin, very large
+#157 -- Dried apricots, package
+#160 -- Strawberry Skyr
+#161 -- Keffir
+#162 -- Cottage cheese
+#163 -- Bluegreen algae powder, 100 g
+#164 -- Chia seeds, 100 g
+#166 -- Fish fingers, box of 30
+#167 -- Cream of mushroom soup
+
+
+Food Group       Required  Included
+------------------------------------
+Whole Grains:     16800     19230
+Fruit Veggies:    27300     27501
+Protein:          29400     29782
+Other:            31500     73831
+------------------------------------
+TOTAL CALORIES:  105000    150279
+------------------------------------------------------
+HAMPER 2:
+
+CLIENTS:
+
+Adult Female ---- x 1
+------------------------------------
+
+ITEMS:
+
+#4 ---- Apple, dozen
+#6 ---- Granola Bar, box
+#10 --- Broccoli, 3 bunches
+#48 --- Maple syrup, 1 L
+#56 --- Mixed nuts, 1 kg
+#61 --- Kidney beans, dozen cans
+#63 --- Quinoa, 1 kg
+#66 --- Saltines
+#68 --- Frozen pizza, pepperoni
+#69 --- Banana, bunch 5
+#71 --- Banana, bunch 10
+#78 --- Kidney beans, 1 pound
+#91 --- Parsnip, 1 kg
+#95 --- Lentils, 1 kg
+#116 -- Oatmeal, 10 packets
+#117 -- Frozen waffles, pack of 10
+#121 -- Lima beans, 1 pound
+#128 -- Onions, net of 10
+#141 -- Frozen french fries, 500 g
+#149 -- Brioche
+#156 -- Hominy, canned, 1 kg
+#168 -- Granola cereal
+
+
+Food Group       Required  Included
+------------------------------------
+Whole Grains:      2240     10200
+Fruit Veggies:     3640      3843
+Protein:           3920      4072
+Other:             4200     14631
+------------------------------------
+TOTAL CALORIES:   14000     32742
+------------------------------------------------------
+THANK YOU
