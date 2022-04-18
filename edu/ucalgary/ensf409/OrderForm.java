@@ -1,97 +1,49 @@
 package edu.ucalgary.ensf409;
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.SQLException;
 import javax.swing.*;
+import javax.swing.table.*;
 import java.util.*;
-import java.sql.*;
 public class OrderForm extends Database implements ActionListener
 {
-    /*
     private JTabbedPane tabs = new JTabbedPane();
     private JPanel foodInventory = new JPanel(new GridBagLayout());
     private JPanel clientNeeds = new JPanel(new GridBagLayout());
     private  JPanel orderList = new JPanel();
+    private JTable inventoryTable = new JTable();
+    private Object inventoryNames[] = {"ItemID", "Name", "Whole Grains", "Fruit & Veggies", "Protein", "Other", "Calories"};
     private JButton databaseButton = new JButton("Inventory");
     private JButton clientDataButton = new JButton("Individual Needs");
-    private JButton newHamperButton = new JButton("New Hamper");
     private JButton orderListButton = new JButton("Order List");
     private JButton updateDatabaseButton = new JButton("Update Inventory");
     private JButton updateClientButton = new JButton("Update Client Info");
     private JButton returnButton1 = new JButton("Return");
     private JButton returnButton2 = new JButton("Return");
     private JPanel orderPage = new JPanel(new GridBagLayout());
-    */
     private ArrayList<Hamper> orderedHampers;
     private HamperForm hamperForm;
+    JScrollPane inventory = new JScrollPane();
     private JPanel orderUI = new JPanel(new GridBagLayout());
     private JFrame frame = new JFrame("Food Bank Manager");
     private GridBagConstraints gbc = new GridBagConstraints();
     protected final JButton ENTER_ORDER_BUTTON = new JButton("Enter");
     OrderForm(String url, String user, String password) throws Exception{   
-        super("jdbc:mysql://localhost:3306/food_inventory","root","LilBunny<3");
+        super(url,user,password);
         this.orderedHampers = new ArrayList<>();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.frame.add(orderUI);
         this.hamperForm = new HamperForm(orderUI,10);
         hamperForm.getEnterOrderButton().addActionListener(this); 
         hamperForm.getPrintOrderButton().addActionListener(this);
+        inventorySetup();
+        tabs.add(orderUI,"Create Order");
+        tabs.add(foodInventory, "Inventory");
+        frame.add(tabs);
         frame.setSize(750, 750);
         frame.setResizable(false);
         frame.setVisible(true);
-        /*
-        //orderPageSetup();
-        //inventorySetup();
-        //clientNeedsSetup();
-        //orderListSetup();
-        tabs.add(orderPage, "Orderform");
-        //tabs.add(clientNeeds, "Individual Needs");
-        //tabs.add(foodInventory, "Inventory");
-        //tabs.add(orderList, "Order List");
-        tabs.add(orderUI,"Create Order");
-        frame.add(tabs);
-         */
     }
-   /* public void orderPageSetup()
-    {
-        gbc.weightx = 0.5;
-        gbc.weighty = 1;
-
-        gbc.ipady = 5;      
-        gbc.anchor = GridBagConstraints.NORTH; 
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(15, 15, 15, 15);
-        gbc.gridwidth = 1;
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        clientDataButton.addActionListener(this);
-        clientDataButton.setPreferredSize(new Dimension(120, 25));
-        orderPage.add(clientDataButton, gbc);
-
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        databaseButton.setPreferredSize(new Dimension(120, 25));
-        databaseButton.addActionListener(this);
-        orderPage.add(databaseButton, gbc);
-
-        gbc.gridx = 2;
-        gbc.gridy = 0;
-        orderListButton.setPreferredSize(new Dimension(120, 25));
-        orderListButton.addActionListener(this);
-        orderPage.add(orderListButton, gbc);
-    }
-    private void addPrintOrderButton(JPanel parent){
-        gbc.ipady = 10;
-        gbc.anchor = GridBagConstraints.WEST; 
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(80, 15, 15, 15);
-        gbc.gridwidth = 1;
-        gbc.gridx = 2;      
-        gbc.gridy = 2;       
-        printOrderButton.setPreferredSize(new Dimension(50, 32));
-        printOrderButton.addActionListener(this);
-        printOrderButton.setVisible(true);
-        parent.add(printOrderButton, gbc);
-    }*/
     public GridBagConstraints createGridBagTextBox(String text, int ipadx, int ipady, int h, int w, int xPos, int yPos, 
     float fontsize, int anchor, int fill, Insets insets){
         JLabel label = new JLabel();
@@ -116,13 +68,7 @@ public class OrderForm extends Database implements ActionListener
         Hamper hamper = super.createHamper(clients, false);
         if(hamper == null){
             if(this.hamperForm.throwErrorDialog(1)){
-                try{
-                    super.createHamper(clients, true);
-                    orderedHampers.add(hamper);
-                }
-                catch(Exception exception){
-                    JOptionPane.showMessageDialog(null, exception.toString(), "Warning: Exception caught",JOptionPane.WARNING_MESSAGE);
-                }
+                JOptionPane.showMessageDialog(null, determineIfClientNeedsCanBeMet(clients));
             }
         }else{
             JOptionPane.showMessageDialog(null,"Order created successfully","Database message", JOptionPane.OK_OPTION);
@@ -132,10 +78,14 @@ public class OrderForm extends Database implements ActionListener
     public void actionPerformed(ActionEvent e)
     {
         if(e.getSource().equals(this.hamperForm.getEnterOrderButton())){
-            int adultMale = this.hamperForm.getClientASpinnerValue();
-            int adultFemale = this.hamperForm.getClientBSpinnerValue();
-            int childrenOver8 = this.hamperForm.getClientCSpinnerValue();
-            int childrenUnder8 = this.hamperForm.getClientDSpinnerValue();
+            int adultMale = 0;
+            int adultFemale = 0;
+            int childrenOver8 = 0;
+            int childrenUnder8 = 0;
+            adultMale = this.hamperForm.getClientASpinnerValue();
+            adultFemale = this.hamperForm.getClientBSpinnerValue();
+            childrenOver8 = this.hamperForm.getClientCSpinnerValue();
+            childrenUnder8 = this.hamperForm.getClientDSpinnerValue();
             ArrayList<Client> clientsList = super.createClients(adultMale, adultFemale, childrenOver8, childrenUnder8);
             boolean valid = super.validateClientList(clientsList);
             if(!valid){
@@ -151,34 +101,39 @@ public class OrderForm extends Database implements ActionListener
             Database.writeToFile(text, fname);
             JOptionPane.showMessageDialog(null, "Order form saved");
         }
-        /*
-        else if (e.getSource().equals(databaseButton))
-        {
-            tabs.setSelectedIndex(2);
-        }
-        else if (e.getSource().equals(clientDataButton))
-        {
-            tabs.setSelectedIndex(1);
-        }
-        else if (e.getSource().equals(orderListButton))
-        {
-            tabs.setSelectedIndex(3);
-        }        
-       
         else if (e.getSource().equals(returnButton1))
         {
             tabs.setSelectedIndex(0);
         }
-        else if (e.getSource().equals(returnButton2))
-        {
-            tabs.setSelectedIndex(0);
-        }*/
+        else if (e.getSource().equals(updateDatabaseButton)){
+            try{
+                super.updateAvailableFood();
+            }catch(SQLException exc){
+                JOptionPane.showMessageDialog(null, "Failed to connect to database", 
+            "Connection Failure",JOptionPane.WARNING_MESSAGE);
+            }
+            updateInventory();
+        }
     }
-    /*private void inventorySetup() 
+    private void updateInventory(){
+        Object[][] inventoryData = new Object[super.inventory.toArrayList().size()][7];
+        try{
+            super.updateAvailableFood();
+            inventoryData = pullInventoryFromDatabase();
+        }catch(SQLException e){
+            JOptionPane.showMessageDialog(null, "Failed to connect to database", 
+            "Connection Failure",JOptionPane.WARNING_MESSAGE);
+        }
+        foodInventory.remove(inventory);
+        inventoryTable.setModel(new DefaultTableModel(inventoryData,inventoryNames));
+        inventory = null;
+        inventory = new JScrollPane(inventory);
+        foodInventory.add(inventory);
+    }
+    private void inventorySetup()
     {
         gbc.weightx = 0.5;
         gbc.weighty = 1;
-
         gbc.ipady = 5;      
         gbc.anchor = GridBagConstraints.NORTH; 
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -188,22 +143,27 @@ public class OrderForm extends Database implements ActionListener
         gbc.gridy = 0;
         returnButton1.addActionListener(this);
         foodInventory.add(returnButton1, gbc);
-
         JLabel spacer1 = new JLabel();
         gbc.gridx = 1;
         gbc.gridy = 0;
         foodInventory.add(spacer1, gbc);
-
         gbc.gridx = 2;
         gbc.gridy = 0;
         updateDatabaseButton.addActionListener(this);
         foodInventory.add(updateDatabaseButton, gbc);
-
-        Object[][] inventoryData = {};
-        String inventoryNames[] = {"Item", "Grain", "Fruit & Veg", "Protein", "Other", "Quantity"};
-        JTable inventoryTable = new JTable(inventoryData, inventoryNames);
+        Object[][] inventoryData = new Object[super.inventory.toArrayList().size()][7];
+        try{
+            inventoryData = pullInventoryFromDatabase();
+        }catch(SQLException e){
+            JOptionPane.showMessageDialog(null, "Failed to connect to database", 
+            "Connection Failure",JOptionPane.WARNING_MESSAGE);
+        }
+        try{
+           inventoryTable = new JTable(new DefaultTableModel(inventoryData,inventoryNames));
+        }catch(Exception e){
+            inventoryTable = new JTable();
+        }
         JScrollPane inventory = new JScrollPane(inventoryTable);
-
         gbc.ipady = 575;
         gbc.anchor = GridBagConstraints.CENTER; 
         gbc.insets = new Insets(5, 15, 15, 15);
@@ -212,13 +172,10 @@ public class OrderForm extends Database implements ActionListener
         gbc.gridy = 1;
         foodInventory.add(inventory, gbc);
     }
-    */
-
-    /*private void clientNeedsSetup() 
+    private void inventorySetup(JTable inventoryTable)
     {
         gbc.weightx = 0.5;
         gbc.weighty = 1;
-
         gbc.ipady = 5;      
         gbc.anchor = GridBagConstraints.NORTH; 
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -226,34 +183,45 @@ public class OrderForm extends Database implements ActionListener
         gbc.gridwidth = 1;
         gbc.gridx = 0;
         gbc.gridy = 0;
-        returnButton2.addActionListener(this);
-        clientNeeds.add(returnButton2, gbc);
-
-        JLabel spacer2 = new JLabel();
+        returnButton1.addActionListener(this);
+        foodInventory.add(returnButton1, gbc);
+        JLabel spacer1 = new JLabel();
         gbc.gridx = 1;
         gbc.gridy = 0;
-        clientNeeds.add(spacer2, gbc);
+        foodInventory.add(spacer1, gbc);
         gbc.gridx = 2;
         gbc.gridy = 0;
-        updateClientButton.addActionListener(this);
-        clientNeeds.add(updateClientButton, gbc);
-
-        Object[][] clientData = {};
-        String clientNames[] = {"Item", "Grain", "Fruit & Veg", "Protein", "Dairy", "Quantity"};
-        JTable clientTable = new JTable(clientData, clientNames);
-        JScrollPane client = new JScrollPane(clientTable);
+        updateDatabaseButton.addActionListener(this);
+        foodInventory.add(updateDatabaseButton, gbc);
+        foodInventory.remove(inventory);
+        inventory = new JScrollPane(inventoryTable);
         gbc.ipady = 575;
         gbc.anchor = GridBagConstraints.CENTER; 
         gbc.insets = new Insets(5, 15, 15, 15);
         gbc.gridwidth = 3;
         gbc.gridx = 0;
         gbc.gridy = 1;
-        clientNeeds.add(client, gbc);
+        foodInventory.add(inventory, gbc);
+        
     }
-
-    public void orderListSetup()
-    {
-        JTabbedPane orders = new JTabbedPane();
-        orderPage.add(orders);
-    }*/
+    private Object[][] pullInventoryFromDatabase() throws SQLException{
+        super.updateAvailableFood();
+        Object[][] available = new Object[super.inventory.toArrayList().size()][7];
+        ArrayList<FoodItem> inventoryCopy = super.getAvailableFoodList().toArrayList();
+        int i = 0;
+        while(i < available.length){
+            FoodItem item = inventoryCopy.get(i);
+            String name = item.getName();
+            Integer a = item.getItemID();
+            Integer b = item.getGrainContent();
+            Integer c = item.getFruitVeggiesContent();
+            Integer d = item.getProteinContent();
+            Integer e = item.getOtherContent();
+            Integer f = item.getCalories();
+            Object[] array = {a,name,b,c,d,e,f};
+            available[i] = array;
+            i++;
+        }
+        return available;
+    }
 }

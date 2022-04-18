@@ -1,0 +1,67 @@
+ORDER RECEIPT
+------------------
+Name:
+Date: 
+------------------
+HAMPER 1:
+
+CLIENTS:
+
+Adult Male ------ x 4
+------------------------------------
+
+ITEMS:
+
+#7 ---- Chicken broth, can
+#15 --- Orange, dozen
+#18 --- Chicken breast, pound
+#34 --- Avocado, dozen
+#35 --- Avocado, dozen
+#40 --- Peanut butter, 2 kg jar
+#54 --- Soy protein, 1 kg
+#70 --- Banana, bunch 6
+#81 --- Hummus
+#84 --- Wheaties, family size
+#94 --- Canned corn, 1 tin
+#97 --- Protein shake, 10 cans
+#98 --- Soy burger, 20
+#101 -- Beyond Breakfast sausage
+#106 -- Creamed spinach
+#107 -- Creamed spinach
+#108 -- Creamed spinach
+#118 -- Frozen blueberries, 2100 g
+#121 -- Lima beans, 1 pound
+#124 -- Tinned sardines, pack of 5
+#125 -- Tinned sardines, pack of 5
+#126 -- Egg salad, 57 g
+#131 -- Roasted seaweed, 250 g
+#134 -- Salmon, 5 filets
+#135 -- Frozen squid, 1 pound
+#136 -- Cocktail shrimp, package
+#137 -- Roasted mixed nuts, 56 oz
+#139 -- Pearl barley, 1 pound
+#142 -- Whey powder, large jar
+#143 -- Oranges, bag
+#144 -- Tinned vegetable chilli
+#145 -- Raisins, 40 g
+#151 -- Peaches, crate
+#152 -- Peaches, crate
+#160 -- Strawberry Skyr
+#161 -- Keffir
+#162 -- Cottage cheese
+#163 -- Bluegreen algae powder, 100 g
+#164 -- Chia seeds, 100 g
+#166 -- Fish fingers, box of 30
+#167 -- Cream of mushroom soup
+
+
+Food Group       Required  Included
+------------------------------------
+Whole Grains:     11200     12189
+Fruit Veggies:    18200     19594
+Protein:          19600     19659
+Other:            21000     27949
+------------------------------------
+TOTAL CALORIES:   70000     79269
+------------------------------------------------------
+THANK YOU

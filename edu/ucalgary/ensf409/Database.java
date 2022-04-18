@@ -49,6 +49,15 @@ public class Database{
             e.printStackTrace();
         }
     }
+    public void setUrl(String url){
+        this.url=url;
+    }
+    public void setPassword(String password){
+        this.password = password;
+    }
+    public void setUsername(String username){
+        this.username = username;
+    }
     public Client createClient(String clientType)throws SQLException{
         dbConnect = DriverManager.getConnection(url,username,password);
         clientType = Client.getValidClientType(clientType).toString(); 
@@ -147,10 +156,12 @@ public class Database{
      * @return {@code true} if the update was successful; {@code false} otherwise.
      * @throws SQLException
      */
-    private boolean updateAvailableFood() throws SQLException{
+    protected boolean updateAvailableFood() throws SQLException{
         boolean status = true;
         FoodList list = new FoodList();
         ResultSet results = null;
+        var temp = this.inventory;
+        this.inventory = null;
         try{
             try{
                 dbConnect = DriverManager.getConnection(url, username, password);
@@ -169,7 +180,6 @@ public class Database{
                     proteinContent, fvContent, otherContent, calories);
                     list.addFoodItem(item);
                 }
-
                 this.inventory = list;
             }
             catch(Exception e){
@@ -180,7 +190,13 @@ public class Database{
             }
         }
         finally{
-            dbConnect.close();
+            try{
+                dbConnect.close();
+            }
+            catch(Exception e){
+                this.inventory = temp;
+            }
+            
         }
         return status;
     }
@@ -1856,7 +1872,7 @@ public class Database{
         try{
             pointer.forEach(item -> {
                 try{
-                    removeFromInventory(item,false);//Should remain false.
+                    removeFromInventory(item,true);//Should remain false.
                 }
                 catch(DatabaseException | SQLException exception){
                     exception.printStackTrace();
@@ -1962,7 +1978,7 @@ public class Database{
         catch(SQLException | DatabaseException e){e.printStackTrace();}});
         return hamper;
     }
-    public boolean determineIfClientNeedsCanBeMet(ArrayList<Client> clients){
+    public String determineIfClientNeedsCanBeMet(ArrayList<Client> clients){
         Iterator<Client> iterator = clients.iterator();
         int totalGrainNeeds = 0;
         int totalFVNeeds = 0;
@@ -1989,9 +2005,15 @@ public class Database{
         boolean validOtherNeeds = totalOtherNeeds < inventory.getOtherContent();
         boolean validCalorieNeeds = totalCalories < inventory.getTotalCalories();
         if(!validCalorieNeeds || !validGrainsNeeds || !validFruitVeggiesNeeds || !validProteinNeeds ||!validOtherNeeds){
-            return false;
+                int[][] deficits = 
+                {{totalGrainNeeds, inventory.getGrainContent()},
+                {totalFVNeeds, inventory.getFruitVeggiesContent()},
+                {totalProteinNeeds, inventory.getProteinContent()},
+                {totalOtherNeeds, inventory.getOtherContent()},
+                {totalCalories, inventory.getTotalCalories()}};
+                return createAlertTooManyClients(deficits);
         }else{
-            return true;
+            return null;
         }
     }
     /** 
@@ -2004,11 +2026,7 @@ public class Database{
      */
     public Hamper createHamper(ArrayList<Client> clients, boolean override){
         Hamper hamper = null;
-        if(override == false){
-            if(determineIfClientNeedsCanBeMet(clients) == false){
-                return null;
-            }
-        }if(override ==true){
+        if(override ==true){
             try{
                 return generateHamperFoodListsIteratively(clients,true);
             }catch(SQLException | DatabaseException e){
@@ -2069,7 +2087,7 @@ public class Database{
                 }
             }
             if(adultFemale !=0){
-                for(int i = 0; i < adultMale; i++){
+                for(int i = 0; i < adultFemale; i++){
                     clientList.add(createClient("Adult Female"));
                 }
             }

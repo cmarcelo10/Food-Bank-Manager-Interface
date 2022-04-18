@@ -44,7 +44,7 @@ VALUES
 ('Tomato Sauce, jar', 0, 80, 10, 10, 120), 
 ('Tomato Sauce, jar', 0, 80, 10, 10, 120), 
 ('Tomato Sauce, jar', 0, 80, 10, 10, 120), 
-('Apple, dozen', 0, 100, 0, 0, 624), 
+('Apple, dozen', 0, 100, 0, 0, 624),
 ('Apple, dozen', 0, 100, 0, 0, 624), 
 ('Granola Bar, box', 71, 0, 6, 23, 936), 
 ('Chicken broth, can', 0, 0, 14, 86, 95), 

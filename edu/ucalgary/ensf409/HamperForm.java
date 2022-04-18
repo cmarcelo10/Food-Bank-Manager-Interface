@@ -180,16 +180,9 @@ public class HamperForm{
             return false;
 
         }else if(code == 1){
-            int input = JOptionPane.showConfirmDialog(null, 
-            "Clients' needs cannot be fully met, proceed?");
-            if(input == 1){
-                return true;
-            }
-            else{
-                JOptionPane.showMessageDialog(null, 
-                "Order cancelled");
-                return false;
-            } 
+            JOptionPane.showMessageDialog(null, 
+            "Clients' needs cannot be fully met");
+            return true;
         }
         else{
             JOptionPane.showMessageDialog(null, 
