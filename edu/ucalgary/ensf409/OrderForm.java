@@ -117,7 +117,6 @@ public class OrderForm extends Database implements ActionListener
             JOptionPane.showMessageDialog(null, "Failed to connect to database", 
             "Connection Failure",JOptionPane.WARNING_MESSAGE);
         }
-        foodInventory.remove(inventory);
         inventoryTable.setModel(new DefaultTableModel(inventoryData,inventoryNames));
         inventory = new JScrollPane(inventory);
         foodInventory.add(inventory);
@@ -135,10 +134,10 @@ public class OrderForm extends Database implements ActionListener
         gbc.gridy = 0;
         returnButton1.addActionListener(this);
         foodInventory.add(returnButton1, gbc);
-        JLabel spacer1 = new JLabel();
+        //JLabel spacer1 = new JLabel();
         gbc.gridx = 1;
         gbc.gridy = 0;
-        foodInventory.add(spacer1, gbc);
+        //foodInventory.add(spacer1, gbc);
         gbc.gridx = 2;
         gbc.gridy = 0;
         updateDatabaseButton.addActionListener(this);
