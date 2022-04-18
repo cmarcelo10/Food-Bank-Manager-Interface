@@ -344,7 +344,7 @@ public class Database{
      * @throws DatabaseException
      * @throws SQLException
      */
-    private FoodList createHamperFoodList(ArrayList<Client> clients) throws DatabaseException{
+    private FoodList createHamperFoodList(ArrayList<Client> clients, boolean suppressWarnings) throws DatabaseException{
         if(clients.isEmpty()){
             System.err.println("List of clients cannot be empty!");
             return null;
@@ -378,7 +378,8 @@ public class Database{
         boolean validFruitVeggiesNeeds = totalFVNeeds < inventory.getFruitVeggiesContent();
         boolean validOtherNeeds = totalOtherNeeds < inventory.getOtherContent();
         boolean validCalorieNeeds = totalCalories < inventory.getTotalCalories();
-        if(!validCalorieNeeds || !validGrainsNeeds || !validFruitVeggiesNeeds || !validProteinNeeds ||!validOtherNeeds){
+        if(!(suppressWarnings) && 
+        (!validCalorieNeeds || !validGrainsNeeds || !validFruitVeggiesNeeds || !validProteinNeeds ||!validOtherNeeds)){
             System.err.println(
                 "Warning: The current nutritional content of the inventory is insufficient to fulfill the request!");
             int[][] deficits = 
@@ -1784,12 +1785,12 @@ public class Database{
         ExecutorService executorService = Executors.newFixedThreadPool(cpus);
         return executorService;
     }
-    private Callable<Hamper> createHamperCallable(ArrayList<Client> clients){
+    private Callable<Hamper> createHamperCallable(ArrayList<Client> clients, boolean override){
         Callable<Hamper> callable = new Callable<Hamper>(){
             public Hamper call(){
                 FoodList foodList = null;
                 try{
-                    foodList = createHamperFoodList(clients);
+                    foodList = createHamperFoodList(clients,override);
                     Hamper hamper = new Hamper(clients, foodList);
                     return hamper;
                 }catch(Exception e){
@@ -1899,7 +1900,7 @@ public class Database{
      * @param clients the arrayList of clients with needs to be fulfilled
      * @return
      */
-    private Hamper generateHamperFoodListsIteratively(ArrayList<Client> clients) throws DatabaseException, SQLException{
+    private Hamper generateHamperFoodListsIteratively(ArrayList<Client> clients, boolean override) throws DatabaseException, SQLException{
         FoodList foodList = null;
         ArrayList<Hamper> listOfHampers = new ArrayList<>();
         Hamper hamper = null;
@@ -1915,7 +1916,7 @@ public class Database{
                 return null;
             }
             else{
-                foodList = createHamperFoodList(clients);
+                foodList = createHamperFoodList(clients,true);
                 if(foodList == null){
                     i++;
                     continue;
@@ -1945,22 +1946,75 @@ public class Database{
         });
         //A secondary optimization call.
         try{
-            removeSurplusHamperContents(hamper);
+            if(override == false){
+                removeSurplusHamperContents(hamper);
+            }
         }catch(NullPointerException | DatabaseException e ){
             e.printStackTrace();
             return hamper;
         }
         ArrayList<FoodItem> usedItems = hamper.getFoodList().toArrayList();
-        usedItems.forEach((item)->{try{removeFromInventory(item, false);} //finalize changes
+        usedItems.forEach((item)->{try{removeFromInventory(item, true);} //finalize changes
         catch(SQLException | DatabaseException e){e.printStackTrace();}});
         return hamper;
     }
-    public Hamper createHamper(ArrayList<Client> clients){
+    public boolean determineIfClientNeedsCanBeMet(ArrayList<Client> clients){
+        Iterator<Client> iterator = clients.iterator();
+        int totalGrainNeeds = 0;
+        int totalFVNeeds = 0;
+        int totalProteinNeeds = 0;
+        int totalOtherNeeds = 0;
+        int totalCalories = 0;
+        while(iterator.hasNext()){
+            Client client = iterator.next();
+            totalGrainNeeds+=client.getGrains();
+            totalFVNeeds+=client.getFruitVeggies();
+            totalProteinNeeds+=client.getProtein();
+            totalOtherNeeds+=client.getOther();
+            totalCalories+=client.getCalories();
+        }
+        FoodList foodList = new FoodList();
+        totalGrainNeeds = totalGrainNeeds*7;
+        totalProteinNeeds = totalProteinNeeds*7;
+        totalFVNeeds = totalFVNeeds*7;
+        totalOtherNeeds = totalOtherNeeds*7;
+        totalCalories = totalCalories*7;
+        boolean validGrainsNeeds = totalGrainNeeds < inventory.getGrainContent();
+        boolean validProteinNeeds = totalProteinNeeds < inventory.getProteinContent();
+        boolean validFruitVeggiesNeeds = totalFVNeeds < inventory.getFruitVeggiesContent();
+        boolean validOtherNeeds = totalOtherNeeds < inventory.getOtherContent();
+        boolean validCalorieNeeds = totalCalories < inventory.getTotalCalories();
+        if(!validCalorieNeeds || !validGrainsNeeds || !validFruitVeggiesNeeds || !validProteinNeeds ||!validOtherNeeds){
+            return false;
+        }else{
+            return true;
+        }
+    }
+    /** 
+     * Creates a hamper for an ArrayList of Client objects.
+     * @param clients the list of clients to fill the hamper for
+     * @param override whether to fill the hamper if the needs cannot be met. 
+     * Doing so will skip the optimization calls and return a single iteratively-generated
+     * hamper object.
+     * @return a hamper object filled as efficiently as possible.
+     */
+    public Hamper createHamper(ArrayList<Client> clients, boolean override){
         Hamper hamper = null;
+        if(override == false){
+            if(determineIfClientNeedsCanBeMet(clients) == false){
+                return null;
+            }
+        }if(override ==true){
+            try{
+                return generateHamperFoodListsIteratively(clients,true);
+            }catch(SQLException | DatabaseException e){
+                return new Hamper();
+            }
+        }
         try{
             ArrayList<Callable<Hamper>> algorithms = new ArrayList<>();
             for(int m = 0; m < 4; m++){
-                algorithms.add(createHamperCallable(clients));
+                algorithms.add(createHamperCallable(clients,false));
             }
             ExecutorService executor = getFixedThreadPool();
             List<Future<Hamper>> listOfPossibleHampers = invokeAllHamperAlgorithms(executor,algorithms);
@@ -1968,7 +2022,7 @@ public class Database{
             //Sync the inventory with the SQL databases
         }catch(Exception q){
             try{
-                return generateHamperFoodListsIteratively(clients);
+                return generateHamperFoodListsIteratively(clients,false);
             }catch(Exception x){
                 q.printStackTrace();
                 x.printStackTrace();
@@ -1982,7 +2036,7 @@ public class Database{
         }catch(DatabaseException e){
             e.printStackTrace();
         }finally{
-            //if(removeAllHamperItemsFromSQLDatabase(hamper) == false){
+            if(removeAllHamperItemsFromSQLDatabase(hamper) == false){
                 try{
                     validateHamperContents(hamper);
                     removeHamperItemsFromLocalInventory(hamper);
@@ -1990,7 +2044,7 @@ public class Database{
                     exception.printStackTrace();
                     return new Hamper();
                 }
-            //}
+            }
         }
         return hamper;
     }

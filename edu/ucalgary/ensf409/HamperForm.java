@@ -4,81 +4,106 @@ import javax.swing.JSpinner.DefaultEditor;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
-public class HamperForm
-{
-    boolean invalidState = false;
-    JFrame frame = new JFrame("Food Bank Orderform");
-    JPanel orderForm = new JPanel(new GridBagLayout());
-    JLabel title = new JLabel();
-    JLabel c1Label = new JLabel();
-    //JTextField client1 = new JTextField(2);
-    JLabel c2Label = new JLabel();
-   // JTextField client2 = new JTextField(2);
-    JLabel c3Label = new JLabel();
-   // JTextField client3 = new JTextField(2);
-    JLabel c4Label = new JLabel();
-    //JTextField client4 = new JTextField(2);
-    SpinnerNumberModel client1S = new SpinnerNumberModel(0,0,10,1);
-    SpinnerNumberModel client2S = new SpinnerNumberModel(0,0,10,1);
-    SpinnerNumberModel client3S = new SpinnerNumberModel(0,0,10,1);
-    SpinnerNumberModel client4S = new SpinnerNumberModel(0,0,10,1);
-    JSpinner client1 = new JSpinner(client1S);
-    JSpinner client2 = new JSpinner(client2S);
-    JSpinner client3 = new JSpinner(client3S);
-    JSpinner client4 = new JSpinner(client4S);
-
+public class HamperForm{
+    private int maxClients;
+    private JPanel orderForm;
+    private JLabel title = new JLabel();
+    private JLabel c1Label = new JLabel();
+    private JLabel c2Label = new JLabel();
+    private JLabel c3Label = new JLabel();
+    private JLabel c4Label = new JLabel();
+    private SpinnerNumberModel spinnerA;
+    private SpinnerNumberModel spinnerB;
+    private SpinnerNumberModel spinnerC;
+    private SpinnerNumberModel spinnerD;
+    public final JSpinner CLIENT_A_SPINNER;
+    public final JSpinner CLIENT_B_SPINNER;
+    public final JSpinner CLIENT_C_SPINNER;
+    public final JSpinner CLIENT_D_SPINNER;
+    private final JButton ENTER_ORDER_BUTTON = new JButton("Enter Order");
+    private final JButton PRINT_ORDER_BUTTON = new JButton("Print Order Form");
     private final int SOUTH = GridBagConstraints.SOUTH;
     private final int HORIZONTAL = GridBagConstraints.HORIZONTAL;
-
-    JButton enterOrderButton = new JButton("Enter");
-    public HamperForm()
-    {
-        Insets clientInsets = new Insets(5, 30, 5, 15);
-        Insets spinnerInsets = new Insets(5,5,5,30);
-        c1Label.setText("# of Adult Males: ");
-        c2Label.setText("# of Adult Females: ");
-        c3Label.setText("# of Children over 8: ");
-        c4Label.setText("# of Children under 8: ");
-        c4Label.setFont(c4Label.getFont().deriveFont(14f));
-        c3Label.setFont(c3Label.getFont().deriveFont(14f));
-        c2Label.setFont(c2Label.getFont().deriveFont(14f));
-        c1Label.setFont(c1Label.getFont().deriveFont(14f));
-        ((DefaultEditor) client1.getEditor()).getTextField().setEditable(false);
-        ((DefaultEditor) client2.getEditor()).getTextField().setEditable(false);
-        ((DefaultEditor) client3.getEditor()).getTextField().setEditable(false);
-        ((DefaultEditor) client4.getEditor()).getTextField().setEditable(false);
-        createInputComponent(c1Label, client1, new Insets(100, 30, 5,15),
-        new Insets(100,5,5,30), 
-        0, 1,2,1);
-        createInputComponent(c2Label, client2, clientInsets, spinnerInsets,0, 2,2,2);
-        createInputComponent(c3Label, client3, clientInsets, spinnerInsets,0, 3,2,3);
-        createInputComponent(c4Label, client4, clientInsets, spinnerInsets,0, 4,2,4);
-        addButtonToWindow(enterOrderButton,0,10, 1, 1, 3, 5, 
-        SOUTH, HORIZONTAL, new Insets(100, 5, 30, 30));
+    public HamperForm(JPanel anchor, int maxClients)
+    {   Insets clientInsets = new Insets(5, 30, 5, 10);
+        Insets firstInset = new Insets(100,5,5,10);
+        Insets spinnerInsets = new Insets(5,5,5,10);
+        this.maxClients = maxClients;
+        this.orderForm = anchor;
+        this.spinnerA = new SpinnerNumberModel(0,0,maxClients,1);
+        this.spinnerB = new SpinnerNumberModel(0,0,maxClients,1);
+        this.spinnerC = new SpinnerNumberModel(0,0,maxClients,1);
+        this.spinnerD = new SpinnerNumberModel(0,0,maxClients,1);
+        this.CLIENT_A_SPINNER = new JSpinner(spinnerA);
+        this.CLIENT_B_SPINNER = new JSpinner(spinnerB);
+        this.CLIENT_C_SPINNER = new JSpinner(spinnerC);
+        this.CLIENT_D_SPINNER = new JSpinner(spinnerD);
+        this.c1Label.setText("# of Adult Males: ");
+        this.c2Label.setText("# of Adult Females: ");
+        this.c3Label.setText("# of Children over 8: ");
+        this.c4Label.setText("# of Children under 8: ");
+        this.c4Label.setFont(c4Label.getFont().deriveFont(14f));
+        this.c3Label.setFont(c3Label.getFont().deriveFont(14f));
+        this.c2Label.setFont(c2Label.getFont().deriveFont(14f));
+        this.c1Label.setFont(c1Label.getFont().deriveFont(14f));
+        addInputComponent(c1Label, CLIENT_A_SPINNER, new Insets(100, 30, 5,10),
+        firstInset, 0, 1,4,1);
+        addInputComponent(c2Label, CLIENT_B_SPINNER, clientInsets, spinnerInsets,0, 2,4,2);
+        addInputComponent(c3Label, CLIENT_C_SPINNER, clientInsets, spinnerInsets,0, 3,4,3);
+        addInputComponent(c4Label, CLIENT_D_SPINNER, clientInsets, spinnerInsets,0, 4,4,4);
+        changeIfSpinnerIsEditable(CLIENT_A_SPINNER, false);
+        changeIfSpinnerIsEditable(CLIENT_B_SPINNER, false);
+        changeIfSpinnerIsEditable(CLIENT_C_SPINNER, false);
+        changeIfSpinnerIsEditable(CLIENT_D_SPINNER, false);
         addTitleToWindow("Order Form");
-        addTextBoxToWindow("Enter a maximum of 10 clients",1, 4, 0, 5,12f);
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.add(orderForm);
-        frame.setSize(500, 500);
-        frame.setResizable(true);
-        frame.setVisible(true);
+        addTextBoxToWindow("Enter a maximum of 10 clients",0,10,1, 4, 0, 5,12f,
+        GridBagConstraints.SOUTH,GridBagConstraints.CENTER,
+        new Insets(10,10,10,10));
+        addButtonToWindow(anchor,ENTER_ORDER_BUTTON,0,10, 1, 1, 3, 5,
+        GridBagConstraints.SOUTH, GridBagConstraints.HORIZONTAL, new Insets(100, 5, 30, 30));
+        addButtonToWindow(anchor,PRINT_ORDER_BUTTON,0,10, 0, 1, 6, 5,
+        GridBagConstraints.SOUTH, GridBagConstraints.HORIZONTAL, new Insets(100, 5, 30, 30));
     }
-    private void addTextBoxToWindow(String text, int h, int w, int x,int y, float size){
+    public void changeIfSpinnerIsEditable(JSpinner spinner, boolean state){
+        ((DefaultEditor)spinner.getEditor()).getTextField().setEditable(state);
+    }
+    public JButton getEnterOrderButton(){
+        return this.ENTER_ORDER_BUTTON;
+    }
+    public JButton getPrintOrderButton(){
+        return this.PRINT_ORDER_BUTTON;
+
+    }
+    public int getClientASpinnerValue(){
+        return (Integer)(this.CLIENT_A_SPINNER.getValue());
+    }
+    public int getClientBSpinnerValue(){
+        return (Integer)(this.CLIENT_B_SPINNER.getValue());
+    }
+    public int getClientCSpinnerValue(){
+        return (Integer)(this.CLIENT_C_SPINNER.getValue());
+    }
+    public int getClientDSpinnerValue(){
+        return (Integer)(this.CLIENT_D_SPINNER.getValue());
+    }
+    private void addTextBoxToWindow(String text, int ipadx, int ipady, int h, int w, int xPos, int yPos, 
+    float fontsize, int anchor, int fill, Insets insets){
         JLabel label = new JLabel();
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.weightx = 1;
         gbc.weighty = 1;
         label.setText(text);
         label.setHorizontalAlignment(JLabel.CENTER);
-        label.setFont(title.getFont().deriveFont(size));
-        gbc.ipady = 10;     
-        gbc.anchor = GridBagConstraints.CENTER; 
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(10, 10, 10, 10);
+        label.setFont(label.getFont().deriveFont(fontsize));
+        gbc.ipadx = ipadx;
+        gbc.ipady = ipady;     
+        gbc.anchor = anchor;
+        gbc.fill = fill;
+        gbc.insets = insets;
         gbc.gridheight = h;
         gbc.gridwidth = w;
-        gbc.gridx = x;      
-        gbc.gridy = y;       
+        gbc.gridx = xPos;      
+        gbc.gridy = yPos;       
         orderForm.add(label, gbc);
     }
     private void addTitleToWindow(String text)
@@ -127,17 +152,17 @@ public class HamperForm
         gbc.gridy = gridy;
         return gbc;
     }
-    private void createInputComponent(JLabel label, JSpinner spinner, Insets textInset, Insets spinnerInset,
+    private void addInputComponent(JLabel label, JSpinner spinner, Insets textInset, Insets spinnerInset,
     int textX, int textY, int spinnerX, int spinnerY){
-        var gbc2 = addSpinnerToWindow(client1, 0, 10, 1, 
-        2, spinnerX, spinnerY, GridBagConstraints.SOUTH, GridBagConstraints.HORIZONTAL, 
+        var gbc2 = addSpinnerToWindow(spinner, 0, 10, 1, 
+        2, spinnerX, spinnerY, GridBagConstraints.EAST, GridBagConstraints.VERTICAL, 
         spinnerInset);
         var gbc1 = addLabelToWindow(label, 0, 10, 1, 
         2, textX, textY, SOUTH, HORIZONTAL, textInset);
         orderForm.add(label, gbc1);
         orderForm.add(spinner,gbc2);
 ;    }
-    private void addButtonToWindow(JButton button, int ipadx, int ipady, int gridHeight, 
+    public void addButtonToWindow(JPanel panel, JButton button, int ipadx, int ipady, int gridHeight, 
     int gridWidth, int gridx, int gridy, int anchor, int fill, Insets insets){
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.ipadx = ipadx;
@@ -148,36 +173,31 @@ public class HamperForm
         gbc.gridheight = 1;
         gbc.gridwidth = 1;
         gbc.gridx = gridx;      
-        gbc.gridy = gridy;       
-        orderForm.add(button, gbc);
+        gbc.gridy = gridy;
+        panel.add(button, gbc);
+    }
+    public boolean throwErrorDialog(int code){
+        if(code == -1){
+            JOptionPane.showMessageDialog(null, 
+            "Error: Total number of clients must be between 0 and " + maxClients);
+            return false;
 
-    }
-    public int[] getUserInput(){
-        int [] array = new int[4];
-        enterOrderButton.addActionListener(new ActionListener(){
-            public void actionPerformed(ActionEvent e)
-            {
-                while(e == null){
-                    int c1 = (Integer)client1.getValue();
-                    int c2 = (Integer)client2.getValue();
-                    int c3 = (Integer)client3.getValue();
-                    int c4 = (Integer)client4.getValue();
-                    if(((c1 + c2 + c3 + c4) > 0 ) && ( 11 > (c1 + c2 + c3 + c4))){
-                        enterOrderButton.setVisible(false);
-                    }
-                    else{
-                        enterOrderButton.setVisible(true);
-                    }
-                }
-                array[0] = (Integer)client1.getValue();
-                array[1] = (Integer)client2.getValue();
-                array[2] = (Integer)client3.getValue();
-                array[3] = (Integer)client4.getValue();
+        }else if(code == 1){
+            int input = JOptionPane.showConfirmDialog(null, 
+            "Clients' needs cannot be fully met, proceed?");
+            if(input == 1){
+                return true;
             }
-        });
-        return array;
-    }
-    public void closeWindow(){
-        this.frame.dispose();
+            else{
+                JOptionPane.showMessageDialog(null, 
+                "Order cancelled");
+                return false;
+            } 
+        }
+        else{
+            JOptionPane.showMessageDialog(null, 
+            "Unable to complete the request" + maxClients);
+            return false;
+        }
     }
 }
