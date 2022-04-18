@@ -65,18 +65,13 @@ public class OrderForm extends Database implements ActionListener
         return gbc;
     }
     public void createHamperFromInput(ArrayList<Client> clients){
-        Hamper hamper = super.createHamper(clients, false);
         String str = determineIfClientNeedsCanBeMet(clients);
-
-        if(hamper == null || hamper.getFoodList() == null){
-            if(this.hamperForm.throwErrorDialog(1)){
-                JOptionPane.showMessageDialog(null, str);
-            }
-        else if(str != null){
+        if(str != null){
             this.hamperForm.throwErrorDialog(1);
             JOptionPane.showMessageDialog(null,str);
         }
-        }else{
+        else{
+            Hamper hamper = super.createHamper(clients, false);
             JOptionPane.showMessageDialog(null,"Order created successfully","Database message", JOptionPane.OK_OPTION);
             orderedHampers.add(hamper);
         }

@@ -17,6 +17,7 @@ public class Database{
     private String url;
     private String password;
     private Connection dbConnect;
+    public final ArrayList<StackTraceElement[]> ERROR_LOG = new ArrayList<>();
     protected volatile FoodList inventory;
     protected volatile Comparator<FoodItem> byProtein;
     protected volatile Comparator<FoodItem> byWholeGrains;
@@ -128,11 +129,13 @@ public class Database{
                 }
             }
             catch(SQLException exception){
+                ERROR_LOG.add(exception.getStackTrace());
                 dbConnect.rollback();
             }
         }
         catch(SQLException except){
             //Catches an SQL exception in the rollback command, if it occurs
+            ERROR_LOG.add(except.getStackTrace());
         }
         finally{
             dbConnect.close();
@@ -185,7 +188,7 @@ public class Database{
             catch(Exception e){
                 try{
                     dbConnect.rollback();
-                }catch(SQLException exception){}
+                }catch(SQLException exception){ERROR_LOG.add(exception.getStackTrace());}
                 status = false;
             }
         }
@@ -194,6 +197,7 @@ public class Database{
                 dbConnect.close();
             }
             catch(Exception e){
+                ERROR_LOG.add(e.getStackTrace());
                 this.inventory = temp;
             }
             
@@ -398,7 +402,7 @@ public class Database{
         boolean validFruitVeggiesNeeds = totalFVNeeds < inventory.getFruitVeggiesContent();
         boolean validOtherNeeds = totalOtherNeeds < inventory.getOtherContent();
         boolean validCalorieNeeds = totalCalories < inventory.getTotalCalories();
-        if(!(suppressWarnings) && 
+        if(
         (!validCalorieNeeds || !validGrainsNeeds || !validFruitVeggiesNeeds || !validProteinNeeds ||!validOtherNeeds)){
             System.err.println(
                 "Warning: The current nutritional content of the inventory is insufficient to fulfill the request!");
@@ -1824,6 +1828,7 @@ public class Database{
     private Hamper getHamperWithLeastSurplus(List<Future<Hamper>> hamperOptions){
         ArrayList<Hamper> listOfHampers = new ArrayList<>();
         Comparator<Hamper> byOverflow = Comparator.comparing(item -> item.getTotalCalories());
+        try{
         for(int p = 0; p < hamperOptions.size(); p++){
             Future<Hamper> hamperOption = hamperOptions.get(p);
             try{
@@ -1837,6 +1842,9 @@ public class Database{
             catch(InterruptedException | ExecutionException e){
                 e.printStackTrace();
             }
+        }
+        }catch(Exception e){
+            return null;
         }
         try{
             listOfHampers.sort(byOverflow);
@@ -2041,11 +2049,16 @@ public class Database{
             ExecutorService executor = getFixedThreadPool();
             List<Future<Hamper>> listOfPossibleHampers = invokeAllHamperAlgorithms(executor,algorithms);
             hamper = getHamperWithLeastSurplus(listOfPossibleHampers);
+            if(hamper == null){
+                return null;
+            }
             //Sync the inventory with the SQL databases
         }catch(Exception q){
             try{
                 return generateHamperFoodListsIteratively(clients,false);
             }catch(Exception x){
+                ERROR_LOG.add(q.getStackTrace());
+                ERROR_LOG.add(x.getStackTrace());
                 q.printStackTrace();
                 x.printStackTrace();
                 return new Hamper();
@@ -2244,6 +2257,5 @@ public class Database{
         a[5] = item.getOtherContent();
         return a;
     }
-  
 } 
 
