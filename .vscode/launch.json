@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Launch InventoryR",
+            "request": "launch",
+            "mainClass": "edu.ucalgary.ensf409.InventoryR",
+            "projectName": "Term_Project_ca62198c"
+        },
+        {
+            "type": "java",
             "name": "Launch Current File",
             "request": "launch",
             "mainClass": "${file}"

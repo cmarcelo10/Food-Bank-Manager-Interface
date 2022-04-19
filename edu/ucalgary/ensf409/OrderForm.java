@@ -93,6 +93,7 @@ public class OrderForm extends Database implements ActionListener
             String fname = JOptionPane.showInputDialog(null, "Save as: ",JOptionPane.OK_CANCEL_OPTION);
             Database.writeToFile(text, fname);
             JOptionPane.showMessageDialog(null, "Order form saved","Order Form",JOptionPane.INFORMATION_MESSAGE);
+            orderedHampers.clear();
         }
         else if (e.getSource().equals(returnButton1))
         {
